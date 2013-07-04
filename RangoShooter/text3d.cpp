@@ -509,7 +509,7 @@ BreakOuter2:
 void t3dInit() {
 	if (font == NULL) {
 		ifstream input;
-		input.open("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/charset", istream::binary);
+		input.open("./dati/charset", istream::binary);
 		font = new T3DFont(input);
 		input.close();
 	}

@@ -734,17 +734,17 @@ void initSkybox ()
 {
     
     if (1 == 1){
-        skyboxArray[0] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox_bello/front.jpg");
-        skyboxArray[1] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox_bello/right.jpg");
-        skyboxArray[2] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox_bello/left.jpg");
-        skyboxArray[3] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox_bello/up.jpg");
-        skyboxArray[4] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox_bello/down.jpg");
+        skyboxArray[0] = toGLTexture("./dati/skybox_bello/front.jpg");
+        skyboxArray[1] = toGLTexture("./dati/skybox_bello/right.jpg");
+        skyboxArray[2] = toGLTexture("./dati/skybox_bello/left.jpg");
+        skyboxArray[3] = toGLTexture("./dati/skybox_bello/up.jpg");
+        skyboxArray[4] = toGLTexture("./dati/skybox_bello/down.jpg");
     } else {
-        skyboxArray[0] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox/front.jpg");
-        skyboxArray[1] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox/left.jpg");
-        skyboxArray[2] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox/right.jpg");
-        skyboxArray[3] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox/up.jpg");
-        skyboxArray[4] = toGLTexture("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/skybox/down.jpg");
+        skyboxArray[0] = toGLTexture("./dati/skybox/front.jpg");
+        skyboxArray[1] = toGLTexture("./dati/skybox/left.jpg");
+        skyboxArray[2] = toGLTexture("./dati/skybox/right.jpg");
+        skyboxArray[3] = toGLTexture("./dati/skybox/up.jpg");
+        skyboxArray[4] = toGLTexture("./dati/skybox/down.jpg");
     }
     
     return;
@@ -756,8 +756,8 @@ void initAssets()
 {
     // init of the levels and targets
     
-    loadasset("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/bersaglio1.blend",&target_scene);
-	loadasset("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/livelli.blend",&level_scene);
+    loadasset("./dati/models/bersaglio1.blend",&target_scene);
+	loadasset("./dati/models/livelli.blend",&level_scene);
 	
 	if (!LoadGLTextures(level_scene.scene))
 	{
@@ -771,13 +771,13 @@ void initAssets()
     
     // initialization of the gun
     
-	loadasset("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/Gioco.obj", &gun0.pistola);
+	loadasset("./dati/models/Gioco.obj", &gun0.pistola);
     if (!LoadGLTextures(gun0.pistola.scene))
     {
 		exit(-1);
     }
     
-    loadasset("/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/bullet.blend", &gun0.proiettile);
+    loadasset("./dati/models/bullet.blend", &gun0.proiettile);
     if (!LoadGLTextures(gun0.proiettile.scene))
     {
 		exit(-1);
