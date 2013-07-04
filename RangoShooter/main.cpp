@@ -288,8 +288,8 @@ void drawBullet()
     
     for (i = 0; i < gun0.bullet_number; i++) {
         glPushMatrix();
-        
-        glTranslatef(5.f+posX, -6.5f, -20.0f);
+        glScalef(0.05,0.05,0.05); //rimpiccioliamo i proiettili
+        glTranslatef(5.f+posX, -6.5f, -23.0f);
         recursive_render(gun0.proiettile.scene,gun0.proiettile.scene->mRootNode, 1.0);
         posX += 1.0f;
         glPopMatrix();
@@ -313,6 +313,7 @@ void drawGun ()
     float radY = asinf(normY/hypY);
     float radX = asinf(normX/hypX);
     //glTranslatef(0.f, shoulder, shoulder);
+	glScalef(0.05,0.05,0.05); //la rimpiccioliamo perche' e' enorme
     glTranslatef(0.f, 5.f, shoulder);
     float rotX, rotY;
     rotX = -(radX*180)/PI;
@@ -322,7 +323,8 @@ void drawGun ()
     glTranslatef(0.f, -5.f, -shoulder);
     //glTranslatef(0.f, -shoulder, -shoulder);
     // and then "position" tra&rot
-    glTranslatef(-0.1f, -6.5f, -20.0f);
+    
+	glTranslatef(0.f, -7.f, -28.0f);
     glRotatef(89.0,0.0,1.0,0.0);
     glRotatef(8.0,0.0,0.0,1.0);
     recursive_render(gun0.pistola.scene,gun0.pistola.scene->mRootNode, 1.0);
@@ -479,7 +481,7 @@ void drawSkybox(void)
 void display(void)
 {
 	float tmp;
-    
+		
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glMatrixMode(GL_MODELVIEW);
@@ -877,6 +879,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(windowWidth, windowHeight);
 	glutInitWindowPosition(100,100);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	
 	glutInit(&argc, argv);
     
 	glutCreateWindow("Progetto OpenGL - Informatica Grafica");
