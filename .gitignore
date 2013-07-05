@@ -1,4 +1,8 @@
-Debug/
+Debug/RangoShooter.exe
+Debug/RangoShooter.ilk
+Debug/RangoShooter.pdb
+Debug/assimp_log.txt
+Debug/dati/models
 RangoShooter/Debug/
 RangoShooter/RangoShooter.user
 Rangoshooter.opensdf
