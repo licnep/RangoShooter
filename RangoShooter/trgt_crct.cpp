@@ -244,6 +244,13 @@ indice_personaggi def_indice(personaggio p0,personaggio p1,personaggio p2,person
 // ----------------------------------------------------------------------------
 
 void renderLevel (const struct aiScene *sc, int level){
+
+	glPushMatrix();
+    glTranslatef(0,-2,0);
+	recursive_render(sc,sc->mRootNode,1.0);
+	glPopMatrix();
+	//recursive_render(sc,sc->mRootNode->mChildren[55],1.0);
+	return;
     switch (level) {
         case 1:
             recursive_render(sc,sc->mRootNode->mChildren[4], 1.0);

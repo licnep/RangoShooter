@@ -45,7 +45,7 @@ GLuint scene_list_case,scene_list_target;
 struct myScene level_scene, target_scene;
 
 // angle of rotation (non static)
-float  xpos = 15, ypos = 0, zpos = 0, lastx, lasty;
+float  xpos = 15, ypos = 0, zpos = 0, xrot = 3, yrot = 0, lastx, lasty;
 float cRadius = 10.0f; // our radius distance from our character
 
 float windowWidth = 900, windowHeight = 600;
@@ -234,8 +234,32 @@ void handleResize(int w, int h)
 void handleKeypress(unsigned char key, //The key that was pressed
 					int x, int y)
 {    //The current mouse coordinates
-    //float xrotrad, yrotrad;
+    float xrotrad, yrotrad;
 	switch (key) {
+		case 'w':
+            yrotrad = (yrot / 180 * 3.141592654f);
+            xrotrad = (xrot / 180 * 3.141592654f);
+            xpos += float(sin(yrotrad)) ;
+            zpos -= float(cos(yrotrad)) ;
+            ypos -= float(sin(xrotrad)) ;
+            break;
+        case 's':
+            yrotrad = (yrot / 180 * 3.141592654f);
+            xrotrad = (xrot / 180 * 3.141592654f);
+            xpos -= float(sin(yrotrad));
+            zpos += float(cos(yrotrad)) ;
+            ypos += float(sin(xrotrad));
+            break;
+        case 'd':
+            yrotrad = (yrot / 180 * 3.141592654f);
+            xpos += float(cos(yrotrad)) * 0.2;
+            zpos += float(sin(yrotrad)) * 0.2;
+            break;
+        case 'a':
+            yrotrad = (yrot / 180 * 3.141592654f);
+            xpos -= float(cos(yrotrad)) * 0.2;
+            zpos -= float(sin(yrotrad)) * 0.2;
+            break;
         case 'n':
             newGame();
             break;
@@ -507,6 +531,7 @@ void display(void)
     
     glTranslated(-xpos,0.0f,-zpos); //translate the screen to the position of our camera
     
+	
 	if(first == TRUE){
 		scene_list_case=glGenLists(3);
 		scene_list_target=glGenLists(10);
@@ -735,7 +760,7 @@ GLuint toGLTexture (const char* path)
 void initSkybox ()
 {
     
-    if (1 == 1){
+    if (1 != 1){
         skyboxArray[0] = toGLTexture("./dati/skybox_bello/front.jpg");
         skyboxArray[1] = toGLTexture("./dati/skybox_bello/right.jpg");
         skyboxArray[2] = toGLTexture("./dati/skybox_bello/left.jpg");
@@ -759,7 +784,9 @@ void initAssets()
     // init of the levels and targets
     
     loadasset("./dati/models/bersaglio1.blend",&target_scene);
-	loadasset("./dati/models/livelli.blend",&level_scene);
+	//loadasset("./dati/models/livelli.blend",&level_scene);
+	//loadasset("./dati/models/diroccataLOWPOLY.obj",&level_scene);
+	loadasset("./dati/models/tuttiIn1.obj",&level_scene);
 	
 	if (!LoadGLTextures(level_scene.scene))
 	{
