@@ -9,8 +9,8 @@
 #include "loader.h"
 
 // currently this is hardcoded
-//static const std::string basepath = "./models/textures/"; //obj..
-static const std::string basepath = "/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/";
+static const std::string basepath = "./dati/models/textures/"; //obj..
+//static const std::string basepath = "/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/";
 
 // images / texture
 std::map<std::string, GLuint*> textureIdMap;	// map image filenames to textureIds
@@ -230,14 +230,14 @@ void recursive_render (const struct aiScene *sc, const struct aiNode* nd, float 
 				int vertexIndex = face->mIndices[i];	// get group index for current index
 				if(mesh->mColors[0] != NULL)
 					Color4f(&mesh->mColors[0][vertexIndex]);
-				if(mesh->mNormals != NULL)
-                    
+				if(mesh->mNormals != NULL) 
+				{    
 					if(mesh->HasTextureCoords(0))		//HasTextureCoords(texture_coordinates_set)
 					{
 						glTexCoord2f(mesh->mTextureCoords[0][vertexIndex].x, 1 - mesh->mTextureCoords[0][vertexIndex].y); //mTextureCoords[channel][vertex]
 					}
-                
-                glNormal3fv(&mesh->mNormals[vertexIndex].x);
+					glNormal3fv(&mesh->mNormals[vertexIndex].x);
+				}
                 glVertex3fv(&mesh->mVertices[vertexIndex].x);
 			}
             
@@ -263,21 +263,21 @@ int LoadGLTextures(const aiScene* sc)
 {
 	ILboolean success;
     
-	ilInit(); /* Initialization of DevIL */
+	//ilInit(); /* Initialization of DevIL */ //e' gia' inizializzato in InitGL nel main
     
 	/* getTexture Filenames and Numb of Textures */
 	for (unsigned int m=0; m<sc->mNumMaterials; m++)
 	{
 		int texIndex = 0;
-		aiReturn texFound = AI_SUCCESS;
         
 		aiString path;	// filename
         
+		aiReturn texFound = sc->mMaterials[m]->GetTexture(aiTextureType_DIFFUSE, texIndex, &path);
 		while (texFound == AI_SUCCESS)
 		{
-			texFound = sc->mMaterials[m]->GetTexture(aiTextureType_DIFFUSE, texIndex, &path);
 			textureIdMap[path.data] = NULL; //fill map with textures, pointers still NULL yet
 			texIndex++;
+			texFound = sc->mMaterials[m]->GetTexture(aiTextureType_DIFFUSE, texIndex, &path);
 		}
 	}
     
@@ -305,41 +305,45 @@ int LoadGLTextures(const aiScene* sc)
         
 		//save IL image ID
 		std::string filename = (*itr).first;  // get filename
-		(*itr).second =  &textureIds[i];	  // save texture id for filename in map
-		itr++;								  // next texture
-        
-        
-		ilBindImage(imageIds[i]); /* Binding of DevIL image name */
-		std::string fileloc = basepath + filename;	/* Loading of image */
-		success = ilLoadImage((const char *)fileloc.c_str());
-        
-		fprintf(stdout,"Loading Image: %s\n", fileloc.data());
-        
-		if (success) /* If no error occured: */
+		
+		if (itr->second==NULL) //solo se la texture non e' ancora stata caricata
 		{
-			success = ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE); /* Convert every colour component into
-                                                                 unsigned byte. If your image contains alpha channel you can replace IL_RGB with IL_RGBA */
-			if (!success)
+			(*itr).second =  &textureIds[i];	  // save texture id for filename in map
+			itr++;								  // next texture
+        
+        
+			ilBindImage(imageIds[i]); /* Binding of DevIL image name */
+			std::string fileloc = basepath + filename;	/* Loading of image */
+			success = ilLoadImage((const char *)fileloc.c_str());
+        
+			//fprintf(stdout,"Loading Image: %s\n", fileloc.data());
+        
+			if (success) /* If no error occured: */
+			{
+				success = ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE); /* Convert every colour component into
+																	 unsigned byte. If your image contains alpha channel you can replace IL_RGB with IL_RGBA */
+				if (!success)
+				{
+					/* Error occured */
+					fprintf(stderr,"Couldn't convert image");
+					return -1;
+				}
+				//glGenTextures(numTextures, &textureIds[i]); /* Texture name generation */
+				glBindTexture(GL_TEXTURE_2D, textureIds[i]); /* Binding of texture name */
+				//redefine standard texture values
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); /* We will use linear
+																				   interpolation for magnification filter */
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); /* We will use linear
+																				   interpolation for minifying filter */
+				glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH),
+							 ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,
+							 ilGetData()); /* Texture specification */
+			}
+			else
 			{
 				/* Error occured */
-				fprintf(stderr,"Couldn't convert image");
-				return -1;
+				fprintf(stderr,"Couldn't load Image: %s\n", fileloc.data());
 			}
-			//glGenTextures(numTextures, &textureIds[i]); /* Texture name generation */
-			glBindTexture(GL_TEXTURE_2D, textureIds[i]); /* Binding of texture name */
-			//redefine standard texture values
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); /* We will use linear
-                                                                               interpolation for magnification filter */
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); /* We will use linear
-                                                                               interpolation for minifying filter */
-			glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH),
-                         ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,
-                         ilGetData()); /* Texture specification */
-		}
-		else
-		{
-			/* Error occured */
-			fprintf(stderr,"Couldn't load Image: %s\n", fileloc.data());
 		}
 	}
 	ilDeleteImages(numTextures, imageIds); /* Because we have already copied image data into texture data
