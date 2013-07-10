@@ -510,7 +510,9 @@ void display(void)
     
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-    
+
+	glDisable(GL_FOG);
+
     drawSkybox();
     drawHUD();
     drawScope();
@@ -518,6 +520,20 @@ void display(void)
 	drawBullet();
     // Draw the score
     drawScore();
+
+	
+	//Fog----------------------
+
+	glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
+	GLfloat fogColor[4]= {0.6f, 0.5f, 0.3f, 1.0f};
+	glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
+	glFogf(GL_FOG_DENSITY, 0.25f);              // How Dense Will The Fog Be
+	glHint(GL_FOG_HINT, GL_DONT_CARE);          // Fog Hint Value
+	glFogf(GL_FOG_START, 1.0f);             // Fog Start Depth
+	glFogf(GL_FOG_END, 5.0f);               // Fog End Depth
+	glEnable(GL_FOG);                   // Enables GL_FOG
+
+	//-------------------------
     
     glPushMatrix();
     gluLookAt(0.f,0.f,3.f,0.f,0.f,-5.f,0.f,1.f,0.f);
@@ -787,6 +803,7 @@ void initAssets()
 	//loadasset("./dati/models/livelli.blend",&level_scene);
 	//loadasset("./dati/models/diroccataLOWPOLY.obj",&level_scene);
 	loadasset("./dati/models/tuttiIn1.obj",&level_scene);
+	//loadasset("./dati/models/PeanutsDivisoLOWPOLY.obj",&level_scene);
 	
 	if (!LoadGLTextures(level_scene.scene))
 	{
@@ -800,7 +817,8 @@ void initAssets()
     
     // initialization of the gun
     
-	loadasset("./dati/models/Gioco.obj", &gun0.pistola);
+	//loadasset("./dati/models/Gioco.obj", &gun0.pistola);
+	loadasset("./dati/models/Pistola_MaterialsLOWPOLY.obj", &gun0.pistola);
     if (!LoadGLTextures(gun0.pistola.scene))
     {
 		exit(-1);
