@@ -243,28 +243,23 @@ indice_personaggi def_indice(personaggio p0,personaggio p1,personaggio p2,person
 
 // ----------------------------------------------------------------------------
 
-void renderLevel (const struct aiScene *sc, int level){
+void renderLevel (const struct aiScene *sc, const struct aiScene *sc1, const struct aiScene *sc2, int level){
 
 	/*glPushMatrix();
     glTranslatef(0,-2,0);
 	recursive_render(sc,sc->mRootNode,1.0);
-	glPopMatrix();*/
+	glPopMatrix();
 	//recursive_render(sc,sc->mRootNode->mChildren[55],1.0);
-	recursive_render(sc,sc->mRootNode,1.0);
-	return;
-	
+	return;*/
     switch (level) {
         case 1:
-            recursive_render(sc,sc->mRootNode->mChildren[4], 1.0);
-            recursive_render(sc,sc->mRootNode->mChildren[5], 1.0);
+            recursive_render(sc,sc->mRootNode, 1.0);
             break;
         case 2:
-            recursive_render(sc,sc->mRootNode->mChildren[2], 1.0);
-            recursive_render(sc,sc->mRootNode->mChildren[3], 1.0);
+            recursive_render(sc1,sc->mRootNode, 1.0);
             break;
         case 3:
-            recursive_render(sc,sc->mRootNode->mChildren[6], 1.0);
-            recursive_render(sc,sc->mRootNode->mChildren[7], 1.0);
+            recursive_render(sc2,sc->mRootNode, 1.0);
             break;
     }
 }
@@ -272,24 +267,21 @@ void renderLevel (const struct aiScene *sc, int level){
 
 // ----------------------------------------------------------------------------
 
-void lista_case(GLuint scene_list, const struct aiScene *sc)
+void lista_case(GLuint scene_list, const struct aiScene *sc,const struct aiScene *sc1,const struct aiScene *sc2)
 {
 	glNewList(scene_list, GL_COMPILE);
 	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
-	recursive_render(sc,sc->mRootNode->mChildren[4], 1.0);
-	recursive_render(sc,sc->mRootNode->mChildren[5], 1.0);
+	recursive_render(sc,sc->mRootNode, 1.0);
 	glEndList();
     
-	glNewList(scene_list+1, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);
-	recursive_render(sc,sc->mRootNode->mChildren[2], 1.0);
-	recursive_render(sc,sc->mRootNode->mChildren[3], 1.0);
+	glNewList(scene_list, GL_COMPILE);
+	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
+	recursive_render(sc1,sc->mRootNode, 1.0);
 	glEndList();
 	
-	glNewList(scene_list+2, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);
-	recursive_render(sc,sc->mRootNode->mChildren[6], 1.0);
-	recursive_render(sc,sc->mRootNode->mChildren[7], 1.0);
+	glNewList(scene_list, GL_COMPILE);
+	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
+	recursive_render(sc2,sc->mRootNode, 1.0);
 	glEndList();
 }
 

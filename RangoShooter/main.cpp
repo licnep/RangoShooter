@@ -43,7 +43,7 @@
 
 GLuint scene_list_case,scene_list_target;
 
-struct myScene level_scene, target_scene;
+struct myScene level1_scene, level2_scene, level3_scene,target_scene; 
 
 // angle of rotation (non static)
 float  xpos = 15, ypos = 0, zpos = 0, xrot = 3, yrot = 0, lastx, lasty;
@@ -157,7 +157,7 @@ void newGame ()
 	t=reset_time(t);
     
     zoom=5.2f;
-    livello=3;
+    livello=1;
     
     stop_level=0;
     
@@ -588,9 +588,22 @@ void display(void)
     gluLookAt(0.f,0.f,3.f,0.f,0.f,-5.f,0.f,1.f,0.f);
 
 	// scale the whole asset to fit into our view frustum
-	tmp = level_scene.scene_max.x-level_scene.scene_min.x;
-	tmp = aisgl_max(level_scene.scene_max.y - level_scene.scene_min.y,tmp);
-	tmp = aisgl_max(level_scene.scene_max.z - level_scene.scene_min.z,tmp);
+	// scale the whole asset to fit into our view frustum
+	if(livello==1){
+	tmp = level1_scene.scene_max.x-level1_scene.scene_min.x;
+	tmp = aisgl_max(level1_scene.scene_max.y - level1_scene.scene_min.y,tmp);
+	tmp = aisgl_max(level1_scene.scene_max.z - level1_scene.scene_min.z,tmp);
+	}
+	if(livello==2){
+	tmp = level2_scene.scene_max.x-level2_scene.scene_min.x;
+	tmp = aisgl_max(level2_scene.scene_max.y - level2_scene.scene_min.y,tmp);
+	tmp = aisgl_max(level2_scene.scene_max.z - level2_scene.scene_min.z,tmp);
+	}
+	if(livello==3){
+	tmp = level3_scene.scene_max.x-level3_scene.scene_min.x;
+	tmp = aisgl_max(level3_scene.scene_max.y - level3_scene.scene_min.y,tmp);
+	tmp = aisgl_max(level3_scene.scene_max.z - level3_scene.scene_min.z,tmp);
+	}
 	tmp = zoom / tmp;
 	glScalef(tmp, tmp, tmp);
     
@@ -600,7 +613,7 @@ void display(void)
 	if(first == TRUE){
 		scene_list_case=glGenLists(3);
 		scene_list_target=glGenLists(10);
-		lista_case(scene_list_case,level_scene.scene);
+		lista_case(scene_list_case,level1_scene.scene,level2_scene.scene,level3_scene.scene);
 		lista_target(scene_list_target,target_scene.scene);
 		pos=scegli_pos(livello,livelli);
 		first = FALSE;
@@ -613,7 +626,7 @@ void display(void)
         
 	ch=render_target(scene_list_target,pos,livelli,m[pos],ch,t.v);
 	//render_case(scene_list_case, livello);
-    renderLevel(level_scene.scene, livello);
+     renderLevel(level1_scene.scene,level2_scene.scene,level3_scene.scene, livello);
     
 	if (menuImg == 0) menuImg = toGLTexture("./dati/models/textures/menu_principale.png");
 	DrawMenu(0,0,menuImg,true);
@@ -807,11 +820,23 @@ void initAssets()
     
     loadasset("./dati/models/bersaglio1.blend",&target_scene);
 	//loadasset("./dati/models/livelli.blend",&level_scene);
-	loadasset("./dati/models/livello3.obj",&level_scene);
+	loadasset("./dati/models/livello1.obj",&level1_scene);
+	loadasset("./dati/models/livello2.obj",&level2_scene);
+	loadasset("./dati/models/livello3.obj",&level3_scene);
 	//loadasset("./dati/models/tuttiIn1.obj",&level_scene);
 	//loadasset("./dati/models/PeanutsDivisoLOWPOLY.obj",&level_scene);
 	
-	if (!LoadGLTextures(level_scene.scene))
+	if (!LoadGLTextures(level1_scene.scene))
+	{
+		exit(-1);
+	}
+
+	if (!LoadGLTextures(level2_scene.scene))
+	{
+		exit(-1);
+	}
+
+	if (!LoadGLTextures(level3_scene.scene))
 	{
 		exit(-1);
 	}
@@ -912,7 +937,9 @@ void cleanUp()
     
     aiReleaseImport(gun0.pistola.scene);
     aiReleaseImport(gun0.proiettile.scene);
-    aiReleaseImport(level_scene.scene);
+    aiReleaseImport(level1_scene.scene);
+	aiReleaseImport(level2_scene.scene);
+	aiReleaseImport(level3_scene.scene);
     aiReleaseImport(target_scene.scene);
         
     t3dCleanup();
