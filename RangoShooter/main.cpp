@@ -564,12 +564,11 @@ void display(void)
 	glDisable(GL_FOG);
 
     drawSkybox();
-    drawHUD();
+    //drawHUD();
     drawScope();
 	drawGun();
 	drawBullet();
     drawScore();
-
 	
 	//Fog----------------------
 
