@@ -41,7 +41,7 @@
 #define NMONKEYS 10
 #define BULLET_NUMBER 6
 
-GLuint scene_list_case,scene_list_target;
+GLuint scene_list_target;
 
 struct myScene level1_scene, level2_scene, level3_scene,target_scene; 
 
@@ -611,9 +611,7 @@ void display(void)
     
 	
 	if(first == TRUE){
-		scene_list_case=glGenLists(3);
 		scene_list_target=glGenLists(10);
-		lista_case(scene_list_case,level1_scene.scene,level2_scene.scene,level3_scene.scene);
 		lista_target(scene_list_target,target_scene.scene);
 		pos=scegli_pos(livello,livelli);
 		first = FALSE;
@@ -625,7 +623,6 @@ void display(void)
     }
         
 	ch=render_target(scene_list_target,pos,livelli,m[pos],ch,t.v);
-	//render_case(scene_list_case, livello);
      renderLevel(level1_scene.scene,level2_scene.scene,level3_scene.scene, livello);
     
 	if (menuImg == 0) menuImg = toGLTexture("./dati/models/textures/menu_principale.png");

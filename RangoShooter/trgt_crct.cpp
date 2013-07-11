@@ -267,27 +267,6 @@ void renderLevel (const struct aiScene *sc, const struct aiScene *sc1, const str
 
 // ----------------------------------------------------------------------------
 
-void lista_case(GLuint scene_list, const struct aiScene *sc,const struct aiScene *sc1,const struct aiScene *sc2)
-{
-	glNewList(scene_list, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
-	recursive_render(sc,sc->mRootNode, 1.0);
-	glEndList();
-    
-	glNewList(scene_list, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
-	recursive_render(sc1,sc1->mRootNode, 1.0);
-	glEndList();
-	
-	glNewList(scene_list, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
-	recursive_render(sc2,sc2->mRootNode, 1.0);
-	glEndList();
-}
-
-
-// ----------------------------------------------------------------------------
-
 void lista_target(GLuint scene_list, const struct aiScene *sc)
 {
 	
