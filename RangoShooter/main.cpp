@@ -18,6 +18,7 @@
 #include "loader.h"
 #include "trgt_crct.h"
 #include "text3d.h"
+#include "menu.h"
 
 #include <IL/il.h>
 #include <IL/ilu.h>
@@ -156,7 +157,7 @@ void newGame ()
 	t=reset_time(t);
     
     zoom=5.2f;
-    livello=1;
+    livello=3;
     
     stop_level=0;
     
@@ -500,10 +501,59 @@ void drawSkybox(void)
     return;
 }
 
+
+
+// ----------------------------------------------------------------------------
+GLuint toGLTexture (const char* path)
+{
+    // this will be a badass function
+    ILuint singleimg;
+    ILboolean success;
+    GLuint textureID;
+    
+    ilGenImages(1, &singleimg); /* Generation of one image name */
+    ilBindImage(singleimg); /* Binding of image name */
+    success = ilLoadImage(path); /* Loading of image "image.jpg" */
+    if (success) /* If no error occured: */
+    {
+        success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE); /* Convert every colour component into
+                                                             unsigned byte. If your image contains alpha channel you can replace IL_RGB with IL_RGBA */
+        if (!success)
+        {
+            /* Error occured */
+            return -1;
+        }
+        glGenTextures(1, &textureID); /* Texture name generation */
+        glBindTexture(GL_TEXTURE_2D, textureID); /* Binding of texture name */
+        // Set texture clamping method
+		
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); //commentate, nella versione di windows di openGL non c'e' clamp_to_edge
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Puts a magnification filter on the texture
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //Puts a minification filter on the texture
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH),
+                     ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,
+                     ilGetData()); /* Texture specification */
+    }
+    else
+    {
+        /* Error occured */
+        return -1;
+    }
+    ilDeleteImages(1, &singleimg); /* Because we have already copied image data into texture data
+                                    we can release memory used by image. */
+    
+    return textureID;
+}
+
 // ---------------------------------------------------------------------------
+GLuint menuImg = 0;
 
 void display(void)
 {
+
 	float tmp;
 		
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -518,7 +568,6 @@ void display(void)
     drawScope();
 	drawGun();
 	drawBullet();
-    // Draw the score
     drawScore();
 
 	
@@ -566,6 +615,9 @@ void display(void)
 	//render_case(scene_list_case, livello);
     renderLevel(level_scene.scene, livello);
     
+	if (menuImg == 0) menuImg = toGLTexture("./dati/models/textures/menu_principale.png");
+	DrawMenu(0,0,menuImg,true);
+
 	m[pos]=scegli_mov(m[pos],livelli,pos,t.tempoi, t.v, ch_index,ch);
 	
 	glutPostRedisplay ();
@@ -727,52 +779,6 @@ void handleMouseKeypress(int key, int state, int x, int y)
 
 
 // ----------------------------------------------------------------------------
-GLuint toGLTexture (const char* path)
-{
-    // this will be a badass function
-    ILuint singleimg;
-    ILboolean success;
-    GLuint textureID;
-    
-    ilGenImages(1, &singleimg); /* Generation of one image name */
-    ilBindImage(singleimg); /* Binding of image name */
-    success = ilLoadImage(path); /* Loading of image "image.jpg" */
-    if (success) /* If no error occured: */
-    {
-        success = ilConvertImage(IL_RGB, IL_UNSIGNED_BYTE); /* Convert every colour component into
-                                                             unsigned byte. If your image contains alpha channel you can replace IL_RGB with IL_RGBA */
-        if (!success)
-        {
-            /* Error occured */
-            return -1;
-        }
-        glGenTextures(1, &textureID); /* Texture name generation */
-        glBindTexture(GL_TEXTURE_2D, textureID); /* Binding of texture name */
-        // Set texture clamping method
-		
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); //commentate, nella versione di windows di openGL non c'e' clamp_to_edge
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Puts a magnification filter on the texture
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //Puts a minification filter on the texture
-        
-        glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH),
-                     ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,
-                     ilGetData()); /* Texture specification */
-    }
-    else
-    {
-        /* Error occured */
-        return -1;
-    }
-    ilDeleteImages(1, &singleimg); /* Because we have already copied image data into texture data
-                                    we can release memory used by image. */
-    
-    return textureID;
-}
-
-
-// ----------------------------------------------------------------------------
 void initSkybox ()
 {
     
@@ -801,8 +807,8 @@ void initAssets()
     
     loadasset("./dati/models/bersaglio1.blend",&target_scene);
 	//loadasset("./dati/models/livelli.blend",&level_scene);
-	//loadasset("./dati/models/diroccataLOWPOLY.obj",&level_scene);
-	loadasset("./dati/models/tuttiIn1.obj",&level_scene);
+	loadasset("./dati/models/livello3.obj",&level_scene);
+	//loadasset("./dati/models/tuttiIn1.obj",&level_scene);
 	//loadasset("./dati/models/PeanutsDivisoLOWPOLY.obj",&level_scene);
 	
 	if (!LoadGLTextures(level_scene.scene))

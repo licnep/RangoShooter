@@ -90,11 +90,13 @@
   <ItemGroup>
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="menu.cpp" />
     <ClCompile Include="text3d.cpp" />
     <ClCompile Include="trgt_crct.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="loader.h" />
+    <ClInclude Include="menu.h" />
     <ClInclude Include="text3d.h" />
     <ClInclude Include="trgt_crct.h" />
   </ItemGroup>
