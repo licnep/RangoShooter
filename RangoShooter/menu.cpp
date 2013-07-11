@@ -16,6 +16,7 @@ void DrawMenu(int x, int y, GLuint textureID, bool blendFlag)
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 
+	glDisable(GL_LIGHTING);
 	//Enable 2D
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -51,11 +52,12 @@ void DrawMenu(int x, int y, GLuint textureID, bool blendFlag)
 	glDisable(GL_TEXTURE_2D);
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
-
+	glEnable(GL_LIGHTING);
 
 	glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
+
 }
 
