@@ -275,7 +275,10 @@ int LoadGLTextures(const aiScene* sc)
 		aiReturn texFound = sc->mMaterials[m]->GetTexture(aiTextureType_DIFFUSE, texIndex, &path);
 		while (texFound == AI_SUCCESS)
 		{
-			textureIdMap[path.data] = NULL; //fill map with textures, pointers still NULL yet
+			if (textureIdMap.find(path.data)==textureIdMap.end()) //la texture non e' ancora caricata nella mappa
+			{
+				textureIdMap[path.data] = NULL; //fill map with textures, pointers still NULL yet
+			}
 			texIndex++;
 			texFound = sc->mMaterials[m]->GetTexture(aiTextureType_DIFFUSE, texIndex, &path);
 		}
@@ -297,20 +300,18 @@ int LoadGLTextures(const aiScene* sc)
 	/* define texture path */
 	//std::string texturepath = "../../../test/models/Obj/";
     
+
 	/* get iterator */
 	std::map<std::string, GLuint*>::iterator itr = textureIdMap.begin();
-    
-	for (int i=0; i<numTextures; i++)
+    int i=0;
+    for (; itr != textureIdMap.end(); ++i, ++itr)
 	{
-        
-		//save IL image ID
-		std::string filename = (*itr).first;  // get filename
-		
 		if (itr->second==NULL) //solo se la texture non e' ancora stata caricata
 		{
-			(*itr).second =  &textureIds[i];	  // save texture id for filename in map
-			itr++;								  // next texture
-        
+			//save IL image ID
+			std::string filename = (*itr).first;  // get filename
+		
+			(*itr).second =  &textureIds[i];	  // save texture id for filename in map        
         
 			ilBindImage(imageIds[i]); /* Binding of DevIL image name */
 			std::string fileloc = basepath + filename;	/* Loading of image */
