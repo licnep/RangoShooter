@@ -47,6 +47,8 @@ indice_personaggi def_indice(personaggio p0,personaggio p1,personaggio p2,person
 
 void renderLevel (const struct aiScene *sc, const struct aiScene *sc1, const struct aiScene *sc2, int level);
 
+void lista_case(GLuint scene_list, const struct aiScene *sc, const struct aiScene *sc1, const struct aiScene *sc2, const struct aiScene *sc3);
+
 void lista_target(GLuint scene_list, const struct aiScene *sc);
 
 int scegli_pos(int livello, level livelli);

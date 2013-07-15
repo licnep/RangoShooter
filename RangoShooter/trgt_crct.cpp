@@ -51,7 +51,7 @@ level InitPos(void)
 	//---------------------
 	rot.x=0,rot.y=0,rot.z=0;
 	scal.x=1,scal.y=1,scal.z=1;
-	trasl.x=3.017,trasl.y=1.181,trasl.z=-2.280;
+	trasl.x=3.017,trasl.y=1.181,trasl.z=-2;
 	centro_21=def_pos(2,1,trasl,rot,scal);
 	//---------------------
 	rot.x=0,rot.y=0,rot.z=0;
@@ -267,6 +267,32 @@ void renderLevel (const struct aiScene *sc, const struct aiScene *sc1, const str
 
 // ----------------------------------------------------------------------------
 
+void lista_case(GLuint scene_list, const struct aiScene *sc,const struct aiScene *sc1,const struct aiScene *sc2,const struct aiScene *sc3)
+{
+	glNewList(scene_list, GL_COMPILE);
+	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
+	recursive_render(sc,sc->mRootNode, 1.0);
+	glEndList();
+    
+	glNewList(scene_list+1, GL_COMPILE);
+	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
+	recursive_render(sc1,sc1->mRootNode, 1.0);
+	glEndList();
+	
+	glNewList(scene_list+2, GL_COMPILE);
+	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
+	recursive_render(sc2,sc2->mRootNode, 1.0);
+	glEndList();
+
+	glNewList(scene_list+3, GL_COMPILE);
+	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
+	recursive_render(sc3,sc3->mRootNode, 1.0);
+	glEndList();
+}
+
+
+// ----------------------------------------------------------------------------
+
 void lista_target(GLuint scene_list, const struct aiScene *sc)
 {
 	
@@ -371,6 +397,7 @@ void render_case(int livello,GLuint scene_list)
 	if(livello==1)glCallList(scene_list);
 	if(livello==2)glCallList(scene_list+1);
 	if(livello==3)glCallList(scene_list+2);
+	glCallList(scene_list+3);
     
 }
 
