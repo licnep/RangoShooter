@@ -41,9 +41,9 @@
 #define NMONKEYS 10
 #define BULLET_NUMBER 6
 
-GLuint scene_list_target;
+GLuint scene_list_case,scene_list_target;
 
-struct myScene level1_scene, level2_scene, level3_scene,target_scene; 
+struct myScene level1_scene, level2_scene, level3_scene,target_scene,terreno_scene; 
 
 // angle of rotation (non static)
 float  xpos = 15, ypos = 0, zpos = 0, xrot = 3, yrot = 0, lastx, lasty;
@@ -61,8 +61,10 @@ motion m[18];
 m_time t;
 level livelli;
 indice_personaggi ch_index;
+POINT mpos;
+aiVector2D pointer_pos;
 
-float zoom=5.2f;
+float zoom=3.f;
 int livello=1;
 int pos,durata=-200;
 int ch;
@@ -70,7 +72,7 @@ int stop_level=0;
 
 GLfloat LightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f };
 GLfloat LightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
-GLfloat LightPosition[]= { 0.0f, 0.0f, 15.0f, 1.0f };
+GLfloat LightPosition[]= { 40.0f, 30.0f, -10.0f, 1.0f };
 
 struct gun {
     struct myScene pistola;
@@ -80,11 +82,17 @@ struct gun {
 
 struct gun gun0;
 bool first;
+bool menu;
+bool full_screen=TRUE;
+bool f_s_off = FALSE;
+bool pause=FALSE;
 
 // need an array for the skybox - using DevIL
 
 GLuint skyboxArray[5];
-
+GLuint menuArray[6];
+GLuint pointer;
+int menu_id=0;
 
 // ---------------------------------------------------------------------------
 void mouseMovement(int x, int y)
@@ -97,6 +105,32 @@ void mouseMovement(int x, int y)
     relativeY += (float) diffy;
 }
 
+// ---------------------------------------------------------------------------
+
+aiVector2D cursor_position(void){
+
+	aiVector2D xy;
+
+	int x_wpos,y_wpos,wh,ww;
+
+	x_wpos=glutGet(GLUT_WINDOW_X);
+	y_wpos=glutGet(GLUT_WINDOW_Y);
+	wh=glutGet(GLUT_WINDOW_HEIGHT);
+	ww=glutGet(GLUT_WINDOW_WIDTH);
+
+	GetCursorPos(&mpos);
+
+	if(full_screen){
+		xy.x=mpos.x*0.1564;
+		xy.y=mpos.y*0.25;
+	}else{
+		xy.x=(mpos.x-x_wpos)*(200.0/ww);
+		xy.y=(mpos.y-y_wpos)*(200.0/wh);
+	}
+
+	return xy;
+
+}
 
 // ---------------------------------------------------------------------------
 void drawHUD()
@@ -141,6 +175,7 @@ void reload ()
     */
     
     gun0.bullet_number = BULLET_NUMBER;
+	score-=3;
     
     return;
 }
@@ -150,13 +185,13 @@ void newGame ()
 {
     int j;
     
+	t=reset_time(t);
+
     for(j=0; j<18; j++){
         m[j]=reset_motion(m[j]);
     }
     
-	t=reset_time(t);
-    
-    zoom=5.2f;
+    zoom=3.f;
     livello=1;
     
     stop_level=0;
@@ -164,6 +199,8 @@ void newGame ()
     // for the score
     
     score = 0;
+
+	gun0.bullet_number = BULLET_NUMBER;
     
     first = TRUE;
     
@@ -204,13 +241,13 @@ void changeLevel(int move)
     }
     
     if(livello==3){
-        zoom=3.0f;
+		xpos= 18;
+        zoom=2.4f;
     } else {
-        zoom=5.2f;
+        zoom=3.0f;
     }
     
 }
-
 
 // ----------------------------------------------------------------------------
 //Called when the window is resized
@@ -237,72 +274,124 @@ void handleKeypress(unsigned char key, //The key that was pressed
 {    //The current mouse coordinates
     float xrotrad, yrotrad;
 	switch (key) {
-		case 'w':
-            yrotrad = (yrot / 180 * 3.141592654f);
-            xrotrad = (xrot / 180 * 3.141592654f);
-            xpos += float(sin(yrotrad)) ;
-            zpos -= float(cos(yrotrad)) ;
-            ypos -= float(sin(xrotrad)) ;
-            break;
-        case 's':
-            yrotrad = (yrot / 180 * 3.141592654f);
-            xrotrad = (xrot / 180 * 3.141592654f);
-            xpos -= float(sin(yrotrad));
-            zpos += float(cos(yrotrad)) ;
-            ypos += float(sin(xrotrad));
-            break;
-        case 'd':
-            yrotrad = (yrot / 180 * 3.141592654f);
-            xpos += float(cos(yrotrad)) * 0.2;
-            zpos += float(sin(yrotrad)) * 0.2;
-            break;
-        case 'a':
-            yrotrad = (yrot / 180 * 3.141592654f);
-            xpos -= float(cos(yrotrad)) * 0.2;
-            zpos -= float(sin(yrotrad)) * 0.2;
-            break;
-        case 'n':
-            newGame();
-            break;
+		case 'f':
+			if(full_screen){
+				full_screen=FALSE;
+				f_s_off=TRUE;
+			}
+			else full_screen=TRUE;
+			break;
+		case 'F':
+			if(full_screen)full_screen=FALSE;
+			else full_screen=TRUE;
+			break;
         case 'r':
             reload();
             break;
+		case 'R':
+            reload();
+            break;
+		case 32://Space key
+			if(menu && menu_id==0)menu_id=2; //metti menu credits
+            break;
+		case 'c':
+			if(menu && menu_id==0)menu_id=1; //metti menu comandi
+            break;
+		case 'C':
+			if(menu && menu_id==0)menu_id=1; //metti menu comandi
+            break;
+		case 13: //Enter key
+			if(menu_id==0){
+				menu_id=5; //Inizia a Giocare (Esci dai menu!)
+				newGame();
+				menu=FALSE;
+			}
+			break;
+		case 8: //Backspace key
+			if(!pause){
+				menu_id=0;//Torna al menu pricipale
+				menu=TRUE;
+			}
+			break;
         case 'p':
-            // restart the level 
-			if(stop_level==1){
-                for(int i=((livello-1)*6);i<6+((livello-1)*6);i++)
-                    m[i]=reset_motion(m[i]);
-                for(int i=0;i<10;i++)livelli.posizione[i].check=0;
-                pos=scegli_pos(livello,livelli);
-                stop_level=0;
-			}
+			if(menu && menu_id==0)menu_id=3; //metti menu personaggi
             break;
-		case 'o':
-            // stop the level
-			if(stop_level==0){
-				for(int i=((livello-1)*6);i<6+((livello-1)*6);i++)m[i].stato=2;
-				stop_level=1;
-			}
+		case 'P':
+			if(menu && menu_id==0)menu_id=3; //metti menu personaggi
             break;
+		case 's':
+			if(menu_id==5){
+				if(pause)pause=FALSE;
+				else pause=TRUE;
+			}
+			break;
+		case 'S':
+			if(menu_id==5){
+				if(pause)pause=FALSE;
+				else pause=TRUE;
+			}
+			break;
         case '+':
-            //t.v+=0.01;
             zoom+=0.2;
             break;
 		case '-':
-            //t.v-=0.01;
             zoom-=0.2;
-            break;
-		case 'x':
-            changeLevel(UP);
-            break;
-		case 'z':
-            changeLevel(DOWN);
             break;
 		case 27: //Escape key
 			exit(0); //Exit the program
 	}
 }
 
+// ----------------------------------------------------------------------------
+
+void drawPointer(aiVector2D p_pos){
+
+	glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, 100, 100, 0);
+    glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_COLOR_MATERIAL);
+    glPushMatrix();
+    glLoadIdentity();
+
+	glScalef(0.5f,0.5f,0.5f);
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	//Enable 2D
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, pointer);
+
+	glBegin(GL_QUADS);
+		
+		glTexCoord2i(0, 0);
+		glVertex2i(p_pos.x-5, p_pos.y+5); //top left corner
+
+		glTexCoord2i(0, 1);
+		glVertex2i(p_pos.x+5, p_pos.y+5); //top right corner
+
+		glTexCoord2i(1, 1);
+		glVertex2i(p_pos.x+5, p_pos.y-5); //bottom right corner
+		
+		glTexCoord2i(1, 0);
+		glVertex2i(p_pos.x-5, p_pos.y-5); //bottom left corner
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+
+
+	glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+	glutPostRedisplay ();
+	
+}
 
 // ----------------------------------------------------------------------------
 
@@ -364,8 +453,8 @@ void drawScope ()
 {
     glPushMatrix();
     glEnable(GL_COLOR_MATERIAL);
-    glTranslatef(relativeX*SENSITIVITY,-relativeY*SENSITIVITY,0.0);
-    glColor3f(1.f, 0.f, 1.f);
+	glTranslatef(pointer_pos.x,pointer_pos.y,0.0);
+    glColor3f(0.5f, 0.5f, 0.5f);
     glBegin(GL_LINE_LOOP);
     
     //Trapezoid
@@ -382,6 +471,7 @@ void drawScope ()
 }
 
 // ----------------------------------------------------------------------------
+
 void drawScore ()
 {
     
@@ -407,7 +497,8 @@ void drawScore ()
     glColor3f(0.f, 0.3f, 1.f);
     
 	//Draw instructions
-	glTranslatef(-10.f, -10.f, -30.0f);
+	glScalef(0.05,0.05,0.05);
+    glTranslatef(-8.f, -6.5f, -23.0f);
     // to this function i pass the hAlign, vAligh, Depth
 	t3dDraw3D(str, 0.0, -0.5, 0.3f);
     
@@ -418,8 +509,8 @@ void drawScore ()
     return;
 }
 
-
 // ----------------------------------------------------------------------------
+
 void drawSkybox(void)
 {
     
@@ -501,9 +592,8 @@ void drawSkybox(void)
     return;
 }
 
-
-
 // ----------------------------------------------------------------------------
+
 GLuint toGLTexture (const char* path)
 {
     // this will be a badass function
@@ -549,23 +639,25 @@ GLuint toGLTexture (const char* path)
 }
 
 // ---------------------------------------------------------------------------
-GLuint menuImg = 0;
 
-void display(void)
-{
+void Render_Gioco(void){
 
 	float tmp;
-		
+	
+	pointer_pos=cursor_position();
+
+	glutSetCursor(GLUT_CURSOR_NONE);
+  
+  /**codice che era stato rimosso da alby:
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	glDisable(GL_FOG);
-
+  **/
     drawSkybox();
     //drawHUD();
-    drawScope();
 	drawGun();
 	drawBullet();
     drawScore();
@@ -575,10 +667,10 @@ void display(void)
 	glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
 	GLfloat fogColor[4]= {0.6f, 0.5f, 0.3f, 1.0f};
 	glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
-	glFogf(GL_FOG_DENSITY, 0.25f);              // How Dense Will The Fog Be
+	glFogf(GL_FOG_DENSITY, 0.2f);              // How Dense Will The Fog Be
 	glHint(GL_FOG_HINT, GL_DONT_CARE);          // Fog Hint Value
-	glFogf(GL_FOG_START, 1.0f);             // Fog Start Depth
-	glFogf(GL_FOG_END, 5.0f);               // Fog End Depth
+	glFogf(GL_FOG_START, 2.0f);             // Fog Start Depth
+	glFogf(GL_FOG_END, 8.0f);               // Fog End Depth
 	glEnable(GL_FOG);                   // Enables GL_FOG
 
 	//-------------------------
@@ -607,34 +699,65 @@ void display(void)
 	glScalef(tmp, tmp, tmp);
     
     glTranslated(-xpos,0.0f,-zpos); //translate the screen to the position of our camera
-    
-	
+    	
 	if(first == TRUE){
+		scene_list_case=glGenLists(4);
 		scene_list_target=glGenLists(10);
+		lista_case(scene_list_case,level1_scene.scene,level2_scene.scene,level3_scene.scene,terreno_scene.scene);
 		lista_target(scene_list_target,target_scene.scene);
 		pos=scegli_pos(livello,livelli);
 		first = FALSE;
 	}
-	
+
 	if(m[pos].stato==2){
         m[pos]=reset_motion(m[pos]);
         pos=scegli_pos(livello,livelli);
     }
         
 	ch=render_target(scene_list_target,pos,livelli,m[pos],ch,t.v);
-     renderLevel(level1_scene.scene,level2_scene.scene,level3_scene.scene, livello);
-    
-	if (menuImg == 0) menuImg = toGLTexture("./dati/models/textures/menu_principale.png");
-	DrawMenu(0,0,menuImg,true);
+	render_case(livello,scene_list_case);
+
+	if(!pause)t=count_time(t);
 
 	m[pos]=scegli_mov(m[pos],livelli,pos,t.tempoi, t.v, ch_index,ch);
-	
+
 	glutPostRedisplay ();
     
-	t=count_time(t);
-    
     glPopMatrix();
+
+	drawPointer(pointer_pos);
+
+}
+
+// ---------------------------------------------------------------------------
+
+void display(void)
+{
+		
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	
+	if(full_screen)glutFullScreen();
+	else{
+		if(f_s_off){
+			glutReshapeWindow(windowWidth,windowHeight);
+			glutPositionWindow(100,100);
+			f_s_off=FALSE;
+		}
+	}
+
+	if(menu_id==0)DrawMenu(0,0,menuArray[0],true);
+	else if(menu_id==1)DrawMenu(0,0,menuArray[1],true);
+	else if(menu_id==2)DrawMenu(0,0,menuArray[2],true);
+	else if(menu_id==3)DrawMenu(0,0,menuArray[3],true);
+	else if(menu_id==4)DrawMenu(0,0,menuArray[4],true);
+	else {
+		if(pause)DrawMenu(0,0,menuArray[5],true);
+		else Render_Gioco();
+	}
+
 	glutSwapBuffers();
     
 }
@@ -643,14 +766,21 @@ void display(void)
 
 void levelChanger(void)
 {
-    if (score > 100) {
-        changeLevel(UP);
-        score = 0;
+    if (score >= 100) {
+		if(livello==3){
+			menu_id=4;
+		}
+		else{
+			changeLevel(UP);
+			reload();
+			score = 0;
+		}
     }
     return;
 }
 
 // ----------------------------------------------------------------------------
+
 int target_hit(GLint hits, GLuint *names)
 {
  	int i;
@@ -675,7 +805,7 @@ int target_hit(GLint hits, GLuint *names)
         maxZ = (GLubyte)names[i * 4 + 2];
         name = (GLubyte)names[i * 4 + 3];
         
-        if ( name > 100 && name < 150 ) {
+        if ( name > 99 && name < 150 ) {
             // right now it "force" this return just so i'm sure it will "attack" a target
             return name;
         }
@@ -686,6 +816,7 @@ int target_hit(GLint hits, GLuint *names)
 }
 
 // ----------------------------------------------------------------------------
+
 void collisionCurse (void)
 {
     int hitten, id;
@@ -770,15 +901,15 @@ void collisionCurse (void)
     return;
 }
 
-
 // ----------------------------------------------------------------------------
+
 void handleMouseKeypress(int key, int state, int x, int y)
 {
     switch (key) {
 		case GLUT_LEFT_BUTTON:
             if (state == 0){
-                gun0.bullet_number--;
                 if (gun0.bullet_number > 0) {
+					gun0.bullet_number--;
                     collisionCurse();
                 }
             }
@@ -786,8 +917,22 @@ void handleMouseKeypress(int key, int state, int x, int y)
     }
 }
 
-
 // ----------------------------------------------------------------------------
+
+void InitMenu(){
+
+	menu = TRUE;
+
+	menuArray[0]= toGLTexture("./dati/models/textures/menu_principale.png");
+	menuArray[1]= toGLTexture("./dati/models/textures/comandi.png");
+	menuArray[2]= toGLTexture("./dati/models/textures/credits.png");
+	menuArray[3]= toGLTexture("./dati/models/textures/personaggi.png");
+	menuArray[4]= toGLTexture("./dati/models/textures/fine_gioco.png");
+	menuArray[5]= toGLTexture("./dati/models/textures/pausa.png");
+}
+
+// --------------------------------------------------------------------------
+
 void initSkybox ()
 {
     
@@ -808,19 +953,17 @@ void initSkybox ()
     return;
 }
 
-
 // ----------------------------------------------------------------------------
+
 void initAssets()
 {
     // init of the levels and targets
     
     loadasset("./dati/models/bersaglio1.blend",&target_scene);
-	//loadasset("./dati/models/livelli.blend",&level_scene);
 	loadasset("./dati/models/livello1.obj",&level1_scene);
 	loadasset("./dati/models/livello2.obj",&level2_scene);
 	loadasset("./dati/models/livello3.obj",&level3_scene);
-	//loadasset("./dati/models/tuttiIn1.obj",&level_scene);
-	//loadasset("./dati/models/PeanutsDivisoLOWPOLY.obj",&level_scene);
+	loadasset("./dati/models/terreno.obj",&terreno_scene);
 	
 	if (!LoadGLTextures(level1_scene.scene))
 	{
@@ -841,10 +984,14 @@ void initAssets()
 	{
 		exit(-1);
 	}
+
+	if (!LoadGLTextures(terreno_scene.scene))
+	{
+		exit(-1);
+	}
     
     // initialization of the gun
     
-	//loadasset("./dati/models/Gioco.obj", &gun0.pistola);
 	loadasset("./dati/models/Pistola_MaterialsLOWPOLY.obj", &gun0.pistola);
     if (!LoadGLTextures(gun0.pistola.scene))
     {
@@ -889,12 +1036,17 @@ int InitGL()					 // All Setup For OpenGL goes here
     ilInit(); /* Initialization of DevIL */
     
     // mouse stuff
-    lastx = middleX;
+    pointer = toGLTexture("./dati/models/textures/mirino.png");
+	lastx = middleX;
     lasty = middleY;
     relativeX = 0.0;
     relativeY = 0.0;
     glutWarpPointer(middleX, middleY); // put the cursor in the middle of the screen
     
+	//for the menu
+
+	InitMenu();
+
     // for the text
     
     t3dInit();
@@ -911,20 +1063,19 @@ int InitGL()					 // All Setup For OpenGL goes here
 }
 
 // ----------------------------------------------------------------------------
+
 void initGame()
 {
     
     livelli=InitPos();
 	
     ch_index=InitPers();
-	
-    newGame();
     
     return;
 }
 
-
 // ----------------------------------------------------------------------------
+
 void cleanUp()
 {
     // cleanup - calling 'aiReleaseImport' is important, as the library
@@ -937,6 +1088,7 @@ void cleanUp()
 	aiReleaseImport(level2_scene.scene);
 	aiReleaseImport(level3_scene.scene);
     aiReleaseImport(target_scene.scene);
+	aiReleaseImport(terreno_scene.scene);
         
     t3dCleanup();
     
@@ -944,6 +1096,7 @@ void cleanUp()
 }
 
 // ----------------------------------------------------------------------------
+
 int main(int argc, char **argv)
 {
 	struct aiLogStream stream;
@@ -953,7 +1106,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(windowWidth, windowHeight);
 	glutInitWindowPosition(100,100);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	
+
 	glutInit(&argc, argv);
     
 	glutCreateWindow("Progetto OpenGL - Informatica Grafica");
