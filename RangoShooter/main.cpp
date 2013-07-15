@@ -83,7 +83,7 @@ struct gun {
 struct gun gun0;
 bool first;
 bool menu;
-bool full_screen=TRUE;
+bool full_screen=FALSE;
 bool f_s_off = FALSE;
 bool pause=FALSE;
 
@@ -253,6 +253,9 @@ void changeLevel(int move)
 //Called when the window is resized
 void handleResize(int w, int h)
 {
+	windowHeight = h;
+	windowWidth = w;
+
 	//Tell OpenGL how to convert from coordinates to pixel values
 	glViewport(0, 0, w, h);
 	
@@ -274,6 +277,7 @@ void handleKeypress(unsigned char key, //The key that was pressed
 {    //The current mouse coordinates
     float xrotrad, yrotrad;
 	switch (key) {
+		case 'k': glutPostRedisplay();break;
 		case 'f':
 			if(full_screen){
 				full_screen=FALSE;
@@ -388,9 +392,6 @@ void drawPointer(aiVector2D p_pos){
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-
-	glutPostRedisplay ();
-	
 }
 
 // ----------------------------------------------------------------------------
@@ -720,8 +721,6 @@ void Render_Gioco(void){
 	if(!pause)t=count_time(t);
 
 	m[pos]=scegli_mov(m[pos],livelli,pos,t.tempoi, t.v, ch_index,ch);
-
-	glutPostRedisplay ();
     
     glPopMatrix();
 
@@ -858,12 +857,16 @@ void collisionCurse (void)
     
     
     //restrict the draw to an area around the cursor
-    gluPickMatrix(fittX, fittY, 500.0, 500.0, view);
-    gluPerspective(60, 1.0, 0.0001, 1000.0);
+    gluPickMatrix(fittX, fittY, 5.0, 5.0, view);
+    //gluPerspective(60, 1.0, 0.0001, 1000.0);
+	gluPerspective(45.0,                  //The camera angle
+		(double)windowWidth / (double)windowHeight, //The width-to-height ratio
+				   1.0,                   //The near z clipping coordinate
+				   200.0);                //The far z clipping coordinate
     
     
     //Draw the objects onto the screen
-    glMatrixMode(GL_MODELVIEW);
+    //glMatrixMode(GL_MODELVIEW);
     
     //draw only the names in the stack, and fill the array
     
@@ -875,7 +878,6 @@ void collisionCurse (void)
     glMatrixMode(GL_PROJECTION);
  	glPopMatrix();
     
- 	
     //get number of objects drawed in that area
     //and return to render mode
 
@@ -1111,6 +1113,7 @@ int main(int argc, char **argv)
     
 	glutCreateWindow("Progetto OpenGL - Informatica Grafica");
 	glutDisplayFunc(display);
+	glutIdleFunc(display);
 	glutKeyboardFunc(handleKeypress);
     glutPassiveMotionFunc(mouseMovement); //check for mouse movement
 	glutMotionFunc(mouseMovement);

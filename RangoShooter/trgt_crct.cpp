@@ -375,8 +375,11 @@ int render_target(GLuint scene_list,int pos, level l, motion m, int ch, int vel)
     
 	if(m.angle==0 && m.count==0)ch=rand() %10;
     
+	//questo serve per la selezione, prima di renderizzare imostiamo il 'nome' (un intero) di cio' che stiamo per renderizzare
+	//se e' nell'area di clipping il nome verra' memorizzato fra le hit
+	glLoadName(100+pos);
+
 	glPushMatrix();
-    glLoadName(100+pos);
     glTranslatef(l.posizione[pos].traslazione.x,l.posizione[pos].traslazione.y,l.posizione[pos].traslazione.z);
 	glRotatef(l.posizione[pos].rotazione.x,1.f,0.f,0.f);
 	glRotatef(l.posizione[pos].rotazione.y,0.f,1.f,0.f);
@@ -385,6 +388,9 @@ int render_target(GLuint scene_list,int pos, level l, motion m, int ch, int vel)
 	if(m.stato!=2)glCallList(scene_list+ch);
 	glPopMatrix();
     
+	//per la selezione, torniamo al nome 0 altrimenti tutto cio' che renderizzeremo dopo contera' ancora come bersaglio
+	glLoadName(0);
+
 	return ch;
 }
 
