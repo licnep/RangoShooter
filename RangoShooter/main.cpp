@@ -5,6 +5,8 @@
 #include <cmath>
 #include <time.h>
 
+#include <SFML/Audio.hpp>
+
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
@@ -86,6 +88,9 @@ bool menu;
 bool full_screen=FALSE;
 bool f_s_off = FALSE;
 bool pause=FALSE;
+
+sf::SoundBuffer *sound_hit,*sound_miss,*sound_youreempty; //suoni
+sf::Sound sound;
 
 // need an array for the skybox - using DevIL
 
@@ -886,6 +891,10 @@ void collisionCurse (void)
     id  = target_hit(hits, buff);
     
     if (id != -1 ){
+		//play hit sound
+		sound.setBuffer(*sound_hit);
+		sound.play();
+
         hitten = id - 100;
         if(livelli.posizione[hitten].movimento==1){
             m[hitten].stato=0;
@@ -896,7 +905,11 @@ void collisionCurse (void)
         }    
         score += ch_index.character[ch].punteggio;
         levelChanger();
-    }
+    } else {
+		//play miss sound
+		sound.setBuffer(*sound_miss);
+		sound.play();
+	}
     
  	glMatrixMode(GL_MODELVIEW);
     
@@ -1060,6 +1073,15 @@ int InitGL()					 // All Setup For OpenGL goes here
     // for the blend
     
     initAssets();
+
+	// for the sounds (TODO: use raii)
+	sound_hit = new sf::SoundBuffer();
+	sound_miss = new sf::SoundBuffer();
+	sound_youreempty = new sf::SoundBuffer();
+    if (!sound_hit->loadFromFile("./dati/audio/hit.wav")) return -1;
+	if (!sound_miss->loadFromFile("./dati/audio/miss.wav")) return -1;
+	if (!sound_youreempty->loadFromFile("./dati/audio/youreempty.wav")) return -1;
+
     
 	return TRUE;					// Initialization Went OK
 }
@@ -1093,6 +1115,10 @@ void cleanUp()
 	aiReleaseImport(terreno_scene.scene);
         
     t3dCleanup();
+
+	delete sound_hit;
+	delete sound_miss;
+	delete sound_youreempty;
     
     return;
 }
