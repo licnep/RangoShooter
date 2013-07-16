@@ -1,3 +1,6 @@
+#pragma once
+
+#include "3dHelperClasses.h"
 #include "loader.h"
 #include <stdlib.h>
 #include <time.h>
@@ -55,7 +58,7 @@ int scegli_pos(int livello, level livelli);
 
 void def_mov(int pos, float angle, int vel);
 
-int render_target(GLuint scene_list,int pos, level l, motion m, int ch, int vel);
+int render_target(int livello, GLuint scene_list,int pos, level l, motion m, int ch, int vel);
 
 void render_case(int livello,GLuint scene_list);
 

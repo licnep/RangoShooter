@@ -1,4 +1,7 @@
 #include "trgt_crct.h"
+#include "3dHelperClasses.h"
+
+locRot livello2_locRot(60,0,0,0,0,0), livello3_locRot(140,0,-40,0,0,0);
 
 level InitPos(void)
 {
@@ -13,7 +16,8 @@ level InitPos(void)
 	//---------------------
 	rot.x=0,rot.y=0,rot.z=0;
 	scal.x=1,scal.y=1,scal.z=1;
-	trasl.x=-10,trasl.y=-8.45,trasl.z=3.5;
+	//trasl.x=-10,trasl.y=-8.45,trasl.z=3.5;
+	trasl.x=-100,trasl.y=-8.45,trasl.z=3.5;
 	destra_11=def_pos(1,1,trasl,rot,scal);
 	//---------------------
 	rot.x=0,rot.y=0,rot.z=0;
@@ -370,9 +374,8 @@ void def_mov(int pos, float angle, int vel)
 
 // ----------------------------------------------------------------------------
 
-int render_target(GLuint scene_list,int pos, level l, motion m, int ch, int vel)
+int render_target(int livello, GLuint scene_list,int pos, level l, motion m, int ch, int vel)
 {
-    
 	if(m.angle==0 && m.count==0)ch=rand() %10;
     
 	//questo serve per la selezione, prima di renderizzare imostiamo il 'nome' (un intero) di cio' che stiamo per renderizzare
@@ -380,6 +383,9 @@ int render_target(GLuint scene_list,int pos, level l, motion m, int ch, int vel)
 	glLoadName(100+pos);
 
 	glPushMatrix();
+	if (livello==2) {translateRotate(livello2_locRot);}
+	if (livello==3) {translateRotate(livello3_locRot);}
+
     glTranslatef(l.posizione[pos].traslazione.x,l.posizione[pos].traslazione.y,l.posizione[pos].traslazione.z);
 	glRotatef(l.posizione[pos].rotazione.x,1.f,0.f,0.f);
 	glRotatef(l.posizione[pos].rotazione.y,0.f,1.f,0.f);
@@ -399,10 +405,20 @@ int render_target(GLuint scene_list,int pos, level l, motion m, int ch, int vel)
 
 void render_case(int livello,GLuint scene_list)
 {
-    
-	if(livello==1)glCallList(scene_list);
-	if(livello==2)glCallList(scene_list+1);
-	if(livello==3)glCallList(scene_list+2);
+	
+	glCallList(scene_list);
+	glPushMatrix();
+		translateRotate(livello2_locRot);
+		glCallList(scene_list+1);
+	glPopMatrix();
+	glPushMatrix();
+		translateRotate(livello3_locRot);
+		glCallList(scene_list+2);
+	glPopMatrix();
+
+	//if(livello==1)glCallList(scene_list);
+	//if(livello==2)glCallList(scene_list+1);
+	//if(livello==3)glCallList(scene_list+2);
 	glCallList(scene_list+3);
     
 }

@@ -21,6 +21,7 @@
 #include "trgt_crct.h"
 #include "text3d.h"
 #include "menu.h"
+#include "3dHelperClasses.h"
 
 #include <IL/il.h>
 #include <IL/ilu.h>
@@ -66,6 +67,8 @@ indice_personaggi ch_index;
 POINT mpos;
 aiVector2D pointer_pos;
 
+camera main_camera;
+
 float zoom=3.f;
 int livello=1;
 int pos,durata=-200;
@@ -91,6 +94,7 @@ bool pause=FALSE;
 
 sf::SoundBuffer sound_hit,sound_miss,sound_youreempty,sound_ohno; //suoni
 sf::Sound sound;
+sf::Music music;
 
 // need an array for the skybox - using DevIL
 
@@ -188,6 +192,11 @@ void reload ()
 // ----------------------------------------------------------------------------
 void newGame ()
 {
+	music.stop();
+	music.openFromFile("./dati/audio/Morricone.ogg");
+	music.play();
+	main_camera.setLocRot(locRot(0,0,0,0,0,0));
+
     int j;
     
 	t=reset_time(t);
@@ -215,10 +224,27 @@ void newGame ()
 // ----------------------------------------------------------------------------
 void changeLevel(int move)
 {
-    
     if (move == 1){
         // UP!
         if(livello<MAX_LIV){
+			//animazione della camera
+			if (livello==1) {
+				//ruota verso destra
+				main_camera.pushAnimation(animation( locRot(0.0,0.0,0.0,0.0,40.0,0.0),1500, std::chrono::system_clock::now() ));
+				//spostati a destra
+				main_camera.pushAnimation(animation( locRot(-65.0,0.0,5.0,0.0,-10.0,0.0),3000, std::chrono::system_clock::now() + std::chrono::milliseconds(1500) ));
+				//ruota verso sinistra
+				main_camera.pushAnimation(animation( locRot(0.0,0.0,0.0,0.0,-30.0,0.0),1000, std::chrono::system_clock::now() + std::chrono::milliseconds(4500) ));
+			} else if (livello==2) {
+				//ruota verso destra
+				main_camera.pushAnimation(animation( locRot(0.0,0.0,0.0,0.0,40.0,0.0),1500, std::chrono::system_clock::now() ));
+				//spostati a destra
+				main_camera.pushAnimation(animation( locRot(-75.0,0.0,-15.0,0.0,-10.0,0.0),3000, std::chrono::system_clock::now() + std::chrono::milliseconds(1500) ));
+				//ruota verso sinistra
+				main_camera.pushAnimation(animation( locRot(0.0,0.0,0.0,0.0,-30.0,0.0),1000, std::chrono::system_clock::now() + std::chrono::milliseconds(4500) ));
+
+			}
+
             
             for(int i=(livello*6);i<6+(livello*6);i++){
                 m[i]=reset_motion(m[i]);
@@ -244,13 +270,13 @@ void changeLevel(int move)
             livello--;
         }
     }
-    
+    /*
     if(livello==3){
 		xpos= 18;
         zoom=2.4f;
     } else {
         zoom=3.0f;
-    }
+    }*/
     
 }
 
@@ -273,7 +299,6 @@ void handleResize(int w, int h)
 				   1.0,                   //The near z clipping coordinate
 				   200.0);                //The far z clipping coordinate
 }
-
 
 // ----------------------------------------------------------------------------
 //Called when a key is pressed
@@ -329,15 +354,21 @@ void handleKeypress(unsigned char key, //The key that was pressed
 			if(menu && menu_id==0)menu_id=3; //metti menu personaggi
             break;
 		case 's':
-			if(menu_id==5){
-				if(pause)pause=FALSE;
-				else pause=TRUE;
-			}
-			break;
 		case 'S':
 			if(menu_id==5){
-				if(pause)pause=FALSE;
-				else pause=TRUE;
+				if(pause) {
+					music.stop();
+					music.openFromFile("./dati/audio/Morricone.ogg");
+					music.play();
+					pause=FALSE;
+				}
+				else {
+					//musica
+					music.stop();
+					music.openFromFile("./dati/audio/Lizard.ogg");
+					music.play();
+					pause=TRUE;
+				}
 			}
 			break;
         case '+':
@@ -423,34 +454,24 @@ void drawBullet()
 
 void drawGun ()
 {
-    glPushMatrix();
-    // first the "movement" rotations
-    float shoulder = -4.1 * fabs(gun0.pistola.scene_max.z-gun0.pistola.scene_min.z);
-    float normX = relativeX/middleX;
-    float normY = relativeY/middleY;
-    float hypX = sqrtf(shoulder*shoulder + normX*normX);
-    float hypY = sqrtf(shoulder*shoulder + normY*normY);
-    float radY = asinf(normY/hypY);
-    float radX = asinf(normX/hypX);
-    //glTranslatef(0.f, shoulder, shoulder);
+	aiVector2D xy;
+	float x,y;
+	xy=cursor_position();
+
+	//coordinate in pixel con origine nel centro della finestra
+	x=xy.x-100.0;
+	y=xy.y-100.0;
+	glPushMatrix();
 	glScalef(0.05,0.05,0.05); //la rimpiccioliamo perche' e' enorme
-    glTranslatef(0.f, 5.f, shoulder);
-    float rotX, rotY;
-    rotX = -(radX*180)/PI;
-    rotY = -(radY*180)/PI;
-    glRotatef(rotY*0.6, 1.0f, 0.0f, 0.f);
-    glRotatef(rotX*2.3, 0.0f, 1.0f, 0.f);
-    glTranslatef(0.f, -5.f, -shoulder);
-    //glTranslatef(0.f, -shoulder, -shoulder);
-    // and then "position" tra&rot
-    
-	glTranslatef(0.f, -7.f, -28.0f);
-    glRotatef(89.0,0.0,1.0,0.0);
-    glRotatef(8.0,0.0,0.0,1.0);
-    recursive_render(gun0.pistola.scene,gun0.pistola.scene->mRootNode, 1.0);
-    
-    glPopMatrix();
-    
+	glTranslatef(0.f, -7.f, -24.0f);
+	glRotatef(-y*0.2, 1.0f, 0.0f, 0.f);
+	glRotatef(-x*0.4, 0.0f, 1.0f, 0.f);
+	glTranslatef(0.f, 0.f, -6.0f);
+	glRotatef(90.0,0.0,1.0,0.0);
+	recursive_render(gun0.pistola.scene,gun0.pistola.scene->mRootNode, 1.0);
+
+	glPopMatrix();
+
 }
 
 // ----------------------------------------------------------------------------
@@ -645,9 +666,7 @@ GLuint toGLTexture (const char* path)
 }
 
 // ---------------------------------------------------------------------------
-
 void Render_Gioco(void){
-
 	float tmp;
 	
 	pointer_pos=cursor_position();
@@ -659,33 +678,20 @@ void Render_Gioco(void){
     
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
-	glDisable(GL_FOG);
   **/
+	glDisable(GL_FOG);
+
     drawSkybox();
     //drawHUD();
 	drawGun();
 	drawBullet();
     drawScore();
 	
-	//Fog----------------------
-
-	glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
-	GLfloat fogColor[4]= {0.6f, 0.5f, 0.3f, 1.0f};
-	glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
-	glFogf(GL_FOG_DENSITY, 0.2f);              // How Dense Will The Fog Be
-	glHint(GL_FOG_HINT, GL_DONT_CARE);          // Fog Hint Value
-	glFogf(GL_FOG_START, 2.0f);             // Fog Start Depth
-	glFogf(GL_FOG_END, 8.0f);               // Fog End Depth
-	glEnable(GL_FOG);                   // Enables GL_FOG
-
-	//-------------------------
-    
     glPushMatrix();
     gluLookAt(0.f,0.f,3.f,0.f,0.f,-5.f,0.f,1.f,0.f);
 
 	// scale the whole asset to fit into our view frustum
-	// scale the whole asset to fit into our view frustum
+	/*
 	if(livello==1){
 	tmp = level1_scene.scene_max.x-level1_scene.scene_min.x;
 	tmp = aisgl_max(level1_scene.scene_max.y - level1_scene.scene_min.y,tmp);
@@ -701,11 +707,37 @@ void Render_Gioco(void){
 	tmp = aisgl_max(level3_scene.scene_max.y - level3_scene.scene_min.y,tmp);
 	tmp = aisgl_max(level3_scene.scene_max.z - level3_scene.scene_min.z,tmp);
 	}
-	tmp = zoom / tmp;
+	tmp = zoom / tmp;*/
+	tmp = 0.0536414;
 	glScalef(tmp, tmp, tmp);
     
-    glTranslated(-xpos,0.0f,-zpos); //translate the screen to the position of our camera
-    	
+    //glTranslated(-xpos,0.0f,-zpos); //translate the screen to the position of our camera
+	glTranslated(-xpos,0.0f,0.0f);
+	
+	//SPOSTAMENTO DELLA CAMERA:
+	float xx=9,yy=0,zz=42;
+	glTranslatef(xx,yy,zz);
+	glRotatef(main_camera.getLocRot().y_rot,0.0f,1.0f,0.0f);
+	//glRotatef(butta,0.0f,1.0f,0.0f);
+	//butta+=0.3;
+	glTranslatef(-xx,-yy,-zz);
+	//translo la camera (in realta' translo tutto il resto)
+	glTranslatef(main_camera.getLocRot().x, main_camera.getLocRot().y, main_camera.getLocRot().z);
+
+
+	//Fog----------------------
+
+	glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
+	GLfloat fogColor[4]= {0.6f, 0.5f, 0.3f, 1.0f};
+	glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
+	glFogf(GL_FOG_DENSITY, 0.45f);              // How Dense Will The Fog Be
+	glHint(GL_FOG_HINT, GL_DONT_CARE);          // Fog Hint Value
+	glFogf(GL_FOG_START, 3.5f);             // Fog Start Depth
+	glFogf(GL_FOG_END, 6.0f);               // Fog End Depth
+	glEnable(GL_FOG);                   // Enables GL_FOG
+	
+	//-------------------------
+
 	if(first == TRUE){
 		scene_list_case=glGenLists(4);
 		scene_list_target=glGenLists(10);
@@ -719,8 +751,8 @@ void Render_Gioco(void){
         m[pos]=reset_motion(m[pos]);
         pos=scegli_pos(livello,livelli);
     }
-        
-	ch=render_target(scene_list_target,pos,livelli,m[pos],ch,t.v);
+       
+	ch=render_target(livello,scene_list_target,pos,livelli,m[pos],ch,t.v);
 	render_case(livello,scene_list_case);
 
 	if(!pause)t=count_time(t);
@@ -758,7 +790,7 @@ void display(void)
 	else if(menu_id==3)DrawMenu(0,0,menuArray[3],true);
 	else if(menu_id==4)DrawMenu(0,0,menuArray[4],true);
 	else {
-		if(pause)DrawMenu(0,0,menuArray[5],true);
+		if(pause) DrawMenu(0,0,menuArray[5],true);
 		else Render_Gioco();
 	}
 
@@ -772,6 +804,10 @@ void levelChanger(void)
 {
     if (score >= 100) {
 		if(livello==3){
+			//musica
+			music.stop();
+			music.openFromFile("./dati/audio/Stuck_In_Guacamole.ogg");
+			music.play();
 			menu_id=4;
 		}
 		else{
@@ -1087,8 +1123,9 @@ int InitGL()					 // All Setup For OpenGL goes here
 	if (!sound_miss.loadFromFile("./dati/audio/miss.wav")) return -1;
 	if (!sound_youreempty.loadFromFile("./dati/audio/youreempty.wav")) return -1;
 	if (!sound_ohno.loadFromFile("./dati/audio/ohno.wav")) return -1;
-	
-
+	music.setLoop(true);
+	if (!music.openFromFile("./dati/audio/Rango_Theme.ogg")) return -1;
+	music.play();
     
 	return TRUE;					// Initialization Went OK
 }
@@ -1130,11 +1167,6 @@ void cleanUp()
 
 int main(int argc, char **argv)
 {
-
-	sf::Music music;
-	if (!music.openFromFile("./dati/audio/morricone.wav")) return -1;
-	music.play();
-
 	struct aiLogStream stream;
     
     initGame();
