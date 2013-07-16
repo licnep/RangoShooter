@@ -89,7 +89,7 @@ bool full_screen=FALSE;
 bool f_s_off = FALSE;
 bool pause=FALSE;
 
-sf::SoundBuffer *sound_hit,*sound_miss,*sound_youreempty; //suoni
+sf::SoundBuffer sound_hit,sound_miss,sound_youreempty,sound_ohno; //suoni
 sf::Sound sound;
 
 // need an array for the skybox - using DevIL
@@ -891,9 +891,6 @@ void collisionCurse (void)
     id  = target_hit(hits, buff);
     
     if (id != -1 ){
-		//play hit sound
-		sound.setBuffer(*sound_hit);
-		sound.play();
 
         hitten = id - 100;
         if(livelli.posizione[hitten].movimento==1){
@@ -904,10 +901,16 @@ void collisionCurse (void)
             m[hitten].stato=2;
         }    
         score += ch_index.character[ch].punteggio;
+		
+		//play hit sound
+		if (ch_index.character[ch].punteggio>0) sound.setBuffer(sound_hit);
+		else sound.setBuffer(sound_ohno);
+		sound.play();
+
         levelChanger();
     } else {
 		//play miss sound
-		sound.setBuffer(*sound_miss);
+		sound.setBuffer(sound_miss);
 		sound.play();
 	}
     
@@ -927,6 +930,11 @@ void handleMouseKeypress(int key, int state, int x, int y)
 					gun0.bullet_number--;
                     collisionCurse();
                 }
+				else 
+				{
+					sound.setBuffer(sound_youreempty);
+					sound.play();
+				}
             }
             break;
     }
@@ -1074,13 +1082,12 @@ int InitGL()					 // All Setup For OpenGL goes here
     
     initAssets();
 
-	// for the sounds (TODO: use raii)
-	sound_hit = new sf::SoundBuffer();
-	sound_miss = new sf::SoundBuffer();
-	sound_youreempty = new sf::SoundBuffer();
-    if (!sound_hit->loadFromFile("./dati/audio/hit.wav")) return -1;
-	if (!sound_miss->loadFromFile("./dati/audio/miss.wav")) return -1;
-	if (!sound_youreempty->loadFromFile("./dati/audio/youreempty.wav")) return -1;
+	// for the sounds
+    if (!sound_hit.loadFromFile("./dati/audio/hit.wav")) return -1;
+	if (!sound_miss.loadFromFile("./dati/audio/miss.wav")) return -1;
+	if (!sound_youreempty.loadFromFile("./dati/audio/youreempty.wav")) return -1;
+	if (!sound_ohno.loadFromFile("./dati/audio/ohno.wav")) return -1;
+	
 
     
 	return TRUE;					// Initialization Went OK
@@ -1115,10 +1122,6 @@ void cleanUp()
 	aiReleaseImport(terreno_scene.scene);
         
     t3dCleanup();
-
-	delete sound_hit;
-	delete sound_miss;
-	delete sound_youreempty;
     
     return;
 }
@@ -1127,6 +1130,11 @@ void cleanUp()
 
 int main(int argc, char **argv)
 {
+
+	sf::Music music;
+	if (!music.openFromFile("./dati/audio/morricone.wav")) return -1;
+	music.play();
+
 	struct aiLogStream stream;
     
     initGame();
