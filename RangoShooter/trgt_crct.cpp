@@ -129,7 +129,7 @@ indice_personaggi InitPers(void)
 	struct indice_personaggi index;
 	struct personaggio ragazza,bambina,uccello,rospo,coniglio,cane,tasso,geko,tartarugha,serpente;
     
-	int norm=70,bonus=35;
+	int norm=8,bonus=3;
     int point_friend = - 10;
     int point_enemy = 10;
     

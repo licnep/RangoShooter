@@ -67,7 +67,7 @@ indice_personaggi ch_index;
 POINT mpos;
 aiVector2D pointer_pos;
 
-camera main_camera;
+Object3D main_camera, pistola;
 
 float zoom=3.f;
 int livello=1;
@@ -296,10 +296,11 @@ void handleResize(int w, int h)
 	glLoadIdentity(); //Reset the camera
 	gluPerspective(45.0,                  //The camera angle
 				   (double)w / (double)h, //The width-to-height ratio
-				   1.0,                   //The near z clipping coordinate
+				   0.1,                   //The near z clipping coordinate
 				   200.0);                //The far z clipping coordinate
 }
 
+float xxx=0,yyy=0,zzz=0,sss=1;
 // ----------------------------------------------------------------------------
 //Called when a key is pressed
 void handleKeypress(unsigned char key, //The key that was pressed
@@ -307,6 +308,12 @@ void handleKeypress(unsigned char key, //The key that was pressed
 {    //The current mouse coordinates
     float xrotrad, yrotrad;
 	switch (key) {
+		case 'a': xxx--;break;
+		case 'd': xxx++;break;
+		case '1': yyy++;break;
+		case '2': yyy--;break;
+		case 'x': zzz--;break;
+		case 'w': zzz++;break;
 		case 'k': glutPostRedisplay();break;
 		case 'f':
 			if(full_screen){
@@ -462,8 +469,9 @@ void drawGun ()
 	x=xy.x-100.0;
 	y=xy.y-100.0;
 	glPushMatrix();
-	glScalef(0.05,0.05,0.05); //la rimpiccioliamo perche' e' enorme
-	glTranslatef(0.f, -7.f, -24.0f);
+	glScalef(0.05*sss,0.05*sss,0.05*sss); //la rimpiccioliamo perche' e' enorme
+	glTranslatef(0.f, -7.f, -17.2f);
+	pistola.applyGlMatrixTransformations(); //applico l'animazione
 	glRotatef(-y*0.2, 1.0f, 0.0f, 0.f);
 	glRotatef(-x*0.4, 0.0f, 1.0f, 0.f);
 	glTranslatef(0.f, 0.f, -6.0f);
@@ -716,14 +724,11 @@ void Render_Gioco(void){
 	
 	//SPOSTAMENTO DELLA CAMERA:
 	float xx=9,yy=0,zz=42;
-	glTranslatef(xx,yy,zz);
+	glTranslatef(xx,yy,zz); //sposto l'origine nella camera
 	glRotatef(main_camera.getLocRot().y_rot,0.0f,1.0f,0.0f);
-	//glRotatef(butta,0.0f,1.0f,0.0f);
-	//butta+=0.3;
 	glTranslatef(-xx,-yy,-zz);
 	//translo la camera (in realta' translo tutto il resto)
 	glTranslatef(main_camera.getLocRot().x, main_camera.getLocRot().y, main_camera.getLocRot().z);
-
 
 	//Fog----------------------
 
@@ -769,7 +774,6 @@ void Render_Gioco(void){
 
 void display(void)
 {
-		
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glMatrixMode(GL_MODELVIEW);
@@ -778,7 +782,8 @@ void display(void)
 	if(full_screen)glutFullScreen();
 	else{
 		if(f_s_off){
-			glutReshapeWindow(windowWidth,windowHeight);
+			//glutReshapeWindow(windowWidth,windowHeight);
+			glutReshapeWindow(400,400);
 			glutPositionWindow(100,100);
 			f_s_off=FALSE;
 		}
@@ -902,7 +907,7 @@ void collisionCurse (void)
     //gluPerspective(60, 1.0, 0.0001, 1000.0);
 	gluPerspective(45.0,                  //The camera angle
 		(double)windowWidth / (double)windowHeight, //The width-to-height ratio
-				   1.0,                   //The near z clipping coordinate
+				   0.1,                   //The near z clipping coordinate
 				   200.0);                //The far z clipping coordinate
     
     
@@ -964,6 +969,8 @@ void handleMouseKeypress(int key, int state, int x, int y)
             if (state == 0){
                 if (gun0.bullet_number > 0) {
 					gun0.bullet_number--;
+					pistola.pushAnimation(animation(locRot(0,0,0,10,0,-10),100,std::chrono::system_clock::now()));
+					pistola.pushAnimation(animation(locRot(0,0,0,-10,0,10),100,std::chrono::system_clock::now()+std::chrono::milliseconds(100)));
                     collisionCurse();
                 }
 				else 

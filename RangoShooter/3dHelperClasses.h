@@ -80,14 +80,22 @@ public:
 	void setLocRot(locRot r) {
 		locrot = r;
 	}
+	void applyGlMatrixTransformations()
+	{
+		locRot l = this->getLocRot(); //update con le eventuali animazioni
+		glRotatef(l.x_rot,1.0f,0.0f,1.0f);
+		glRotatef(l.y_rot,0.0f,1.0f,0.0f);
+		glRotatef(l.z_rot,0.0f,0.0f,1.0f);
+		glTranslatef(l.x, l.y, l.z);
+	}
 private:
 	std::list<animation> animations;
 	locRot locrot;
 };
-
+/*
 class camera: public Object3D {
 public:
 	camera():animation_is_playing(false) {}
 	
 	bool animation_is_playing;
-};
+};*/
