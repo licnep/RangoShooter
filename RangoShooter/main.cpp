@@ -12,9 +12,8 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
+#include <GL/glew.h>
 #include <GL/glut.h>
-#include <GL/glu.h>
-#include <GL/gl.h>
 #endif
 
 #include "loader.h"
@@ -22,6 +21,7 @@
 #include "text3d.h"
 #include "menu.h"
 #include "3dHelperClasses.h"
+#include "glsl.h"
 
 #include <IL/il.h>
 #include <IL/ilu.h>
@@ -87,6 +87,8 @@ indice_personaggi ch_index;
 POINT mpos;
 aiVector2D pointer_pos;
 Object3D main_camera, pistola;
+int uniformALOXrenderMode,glslFog,glslTime; //variabili da passare a glsl
+bool custom_shader = false;
 
 sf::SoundBuffer sound_hit,sound_miss,sound_youreempty,sound_ohno; //suoni
 sf::Sound sound;
@@ -247,7 +249,7 @@ void handleKeypress(unsigned char key, //The key that was pressed
 {    //The current mouse coordinates
     float xrotrad, yrotrad;
 	switch (key) {
-
+		case 'h': custom_shader = !custom_shader;
 		case 'f':
 		case 'F':
 			if(full_screen){
@@ -566,6 +568,7 @@ GLuint toGLTexture (const char* path)
     return textureID;
 }
 
+int tempo=0;
 // ---------------------------------------------------------------------------
 
 void Render_Gioco(void){
@@ -574,9 +577,16 @@ void Render_Gioco(void){
 	
 	pointer_pos=cursor_position();
 
-	glutSetCursor(GLUT_CURSOR_NONE);
-  
-	glDisable(GL_FOG);
+	glutSetCursor(GLUT_CURSOR_NONE); 
+
+	if(custom_shader) glUseProgram(myGLSLProgram);
+	else glUseProgram(0);
+
+	//aggiorno la variabile tempo nello shader glsl
+	tempo=(tempo+1)%200;
+	glUniform1i(glslTime, tempo);
+
+	glDisable(GL_FOG); glUniform1i(glslFog, 0);
 
     drawSkybox();
 	drawGun();
@@ -630,6 +640,8 @@ void Render_Gioco(void){
        
 	ch=render_target(livello,scene_list_target,pos,livelli,m[pos],ch,t.v);
 	render_case(livello,scene_list_case);
+
+	glUseProgram(0);
 
 	if(!pause)t=count_time(t);
 
@@ -936,6 +948,12 @@ void initAssets()
 
 int InitGL()					 // All Setup For OpenGL goes here
 {
+	glewInit();
+	initGLSL();
+	uniformALOXrenderMode = glGetUniformLocation(myGLSLProgram, "ALOXrenderMode");
+	glslFog = glGetUniformLocation(myGLSLProgram, "glslFog");
+	glslTime = glGetUniformLocation(myGLSLProgram, "glslTime");
+
 	glShadeModel(GL_SMOOTH);		 // Enables Smooth Shading
     glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClearDepth(1.0f);				// Depth Buffer Setup
@@ -952,6 +970,15 @@ int InitGL()					 // All Setup For OpenGL goes here
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
 	glEnable(GL_LIGHT1);
+
+	GLfloat ambiente2[]= { 0.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat diffusa2[]= { 0.5f, 0.5f, 0.5f, 1.0f };
+	GLfloat posizione2[]= { -40.0f, 30.0f, -160.0f, 1.0f };
+
+	glLightfv(GL_LIGHT2, GL_AMBIENT, ambiente2);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, diffusa2);
+	glLightfv(GL_LIGHT2, GL_POSITION, posizione2);
+	glEnable(GL_LIGHT2);
     
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     

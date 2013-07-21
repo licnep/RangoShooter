@@ -22,9 +22,8 @@
 #include "assimp--2.0.863-sdk/include/aiPostProcess.h"
 #include "assimp--2.0.863-sdk/include/aiScene.h"
 #else
+#include <GL/glew.h>
 #include <GL/glut.h>
-#include <GL/glu.h>
-#include <GL/gl.h>
 #include "assimp.h"
 #include "aiPostProcess.h"
 #include "aiScene.h"

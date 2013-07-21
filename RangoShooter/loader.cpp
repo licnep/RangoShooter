@@ -8,6 +8,8 @@
 
 #include "loader.h"
 
+extern GLuint myGLSLProgram;
+
 // currently this is hardcoded
 static const std::string basepath = "./dati/models/textures/"; //obj..
 //static const std::string basepath = "/Users/lorenzosciandra/Developer/Informatica Grafica /nuova_prova_assimp/models/";
@@ -165,7 +167,8 @@ void Color4f(const struct aiColor4D *color)
 }
 
 // ----------------------------------------------------------------------------
-
+extern bool custom_shader;
+extern int uniformALOXrenderMode;
 void recursive_render (const struct aiScene *sc, const struct aiNode* nd, float scale)
 {
 	unsigned int i;
@@ -187,10 +190,13 @@ void recursive_render (const struct aiScene *sc, const struct aiNode* nd, float 
 		apply_material(sc->mMaterials[mesh->mMaterialIndex]);
         
         
-		if(mesh->HasTextureCoords(0))
+		if(mesh->HasTextureCoords(0)) {
+			glUniform1i(uniformALOXrenderMode, 1);
 			glEnable(GL_TEXTURE_2D);
-		else
+		} else {
+			glUniform1i(uniformALOXrenderMode, 0);
 			glDisable(GL_TEXTURE_2D);
+		}
 		if(mesh->mNormals == NULL)
 		{
 			glDisable(GL_LIGHTING);
