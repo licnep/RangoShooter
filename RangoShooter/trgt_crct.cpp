@@ -120,7 +120,6 @@ level InitPos(void)
     
 }
 
-
 // ----------------------------------------------------------------------------
 
 indice_personaggi InitPers(void)
@@ -153,7 +152,6 @@ indice_personaggi InitPers(void)
     
 }
 
-
 // ----------------------------------------------------------------------------
 
 position def_pos (int liv, int mov, aiVector3D t, aiVector3D r, aiVector3D s)
@@ -171,7 +169,6 @@ position def_pos (int liv, int mov, aiVector3D t, aiVector3D r, aiVector3D s)
 	return p;
     
 }
-
 
 // ----------------------------------------------------------------------------
 
@@ -221,7 +218,6 @@ personaggio def_pers (int pers_id, int life, int points)
     
 }
 
-
 // ----------------------------------------------------------------------------
 
 indice_personaggi def_indice(personaggio p0,personaggio p1,personaggio p2,personaggio p3,personaggio p4,
@@ -247,53 +243,24 @@ indice_personaggi def_indice(personaggio p0,personaggio p1,personaggio p2,person
 
 // ----------------------------------------------------------------------------
 
-void renderLevel (const struct aiScene *sc, const struct aiScene *sc1, const struct aiScene *sc2, int level){
-
-	/*glPushMatrix();
-    glTranslatef(0,-2,0);
-	recursive_render(sc,sc->mRootNode,1.0);
-	glPopMatrix();
-	//recursive_render(sc,sc->mRootNode->mChildren[55],1.0);
-	return;*/
-    switch (level) {
-        case 1:
-            recursive_render(sc,sc->mRootNode, 1.0);
-            break;
-        case 2:
-            recursive_render(sc1,sc->mRootNode, 1.0);
-            break;
-        case 3:
-            recursive_render(sc2,sc->mRootNode, 1.0);
-            break;
-    }
-}
-
-
-// ----------------------------------------------------------------------------
-
 void lista_case(GLuint scene_list, const struct aiScene *sc,const struct aiScene *sc1,const struct aiScene *sc2,const struct aiScene *sc3)
 {
 	glNewList(scene_list, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
 	recursive_render(sc,sc->mRootNode, 1.0);
 	glEndList();
     
 	glNewList(scene_list+1, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
 	recursive_render(sc1,sc1->mRootNode, 1.0);
 	glEndList();
 	
 	glNewList(scene_list+2, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
 	recursive_render(sc2,sc2->mRootNode, 1.0);
 	glEndList();
 
 	glNewList(scene_list+3, GL_COMPILE);
-	//recursive_render(sc,sc->mRootNode->mChildren[0], 1.0);//Terreno
 	recursive_render(sc3,sc3->mRootNode, 1.0);
 	glEndList();
 }
-
 
 // ----------------------------------------------------------------------------
 
@@ -307,7 +274,6 @@ void lista_target(GLuint scene_list, const struct aiScene *sc)
 	}
     
 }
-
 
 // ----------------------------------------------------------------------------
 
@@ -328,7 +294,6 @@ int scegli_pos(int livello, level livelli)
     
 	return pos;
 }
-
 
 // ----------------------------------------------------------------------------
 
@@ -371,7 +336,6 @@ void def_mov(int pos, float angle, int vel)
     
 }
 
-
 // ----------------------------------------------------------------------------
 
 int render_target(int livello, GLuint scene_list,int pos, level l, motion m, int ch, int vel)
@@ -400,7 +364,6 @@ int render_target(int livello, GLuint scene_list,int pos, level l, motion m, int
 	return ch;
 }
 
-
 // ----------------------------------------------------------------------------
 
 void render_case(int livello,GLuint scene_list)
@@ -423,7 +386,6 @@ void render_case(int livello,GLuint scene_list)
     
 }
 
-
 // ----------------------------------------------------------------------------
 
 motion scegli_mov(motion m,level l, int pos, int tempoi, float vel, indice_personaggi index, int ch)
@@ -441,7 +403,6 @@ motion scegli_mov(motion m,level l, int pos, int tempoi, float vel, indice_perso
 	return m;
     
 }
-
 
 // ----------------------------------------------------------------------------
 
@@ -502,7 +463,6 @@ motion do_motion1 (motion m,int tempoi,int wait)
 	return m;
 }
 
-
 // ----------------------------------------------------------------------------
 
 motion do_motion2 (motion m,int tempoi)
@@ -536,7 +496,6 @@ motion do_motion2 (motion m,int tempoi)
 	return m;
 }
 
-
 // ----------------------------------------------------------------------------
 
 motion reset_motion(motion m)
@@ -553,7 +512,6 @@ motion reset_motion(motion m)
 	return m;
 }
 
-
 // ----------------------------------------------------------------------------
 
 m_time count_time (m_time t)
@@ -567,7 +525,6 @@ m_time count_time (m_time t)
     
 	return t;
 }
-
 
 // ----------------------------------------------------------------------------
 

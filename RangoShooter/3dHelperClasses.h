@@ -1,3 +1,5 @@
+#include "loader.h"
+
 #pragma once
 #include <chrono>
 #include <list>
@@ -92,10 +94,3 @@ private:
 	std::list<animation> animations;
 	locRot locrot;
 };
-/*
-class camera: public Object3D {
-public:
-	camera():animation_is_playing(false) {}
-	
-	bool animation_is_playing;
-};*/

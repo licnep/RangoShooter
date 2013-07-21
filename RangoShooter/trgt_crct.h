@@ -48,8 +48,6 @@ personaggio def_pers (int pers_id, int life, int points);
 indice_personaggi def_indice(personaggio p0,personaggio p1,personaggio p2,personaggio p3,personaggio p4,
 							 personaggio p5,personaggio p6,personaggio p7,personaggio p8,personaggio p9);
 
-void renderLevel (const struct aiScene *sc, const struct aiScene *sc1, const struct aiScene *sc2, int level);
-
 void lista_case(GLuint scene_list, const struct aiScene *sc, const struct aiScene *sc1, const struct aiScene *sc2, const struct aiScene *sc3);
 
 void lista_target(GLuint scene_list, const struct aiScene *sc);
