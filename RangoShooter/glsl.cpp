@@ -38,9 +38,6 @@ void initGLSL()
 	vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
 	fragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
 
-	std::string vertexSource = haze2V;
-	std::string fragmentSource = haze2F;
-
 	// we need these to properly pass the strings
     const char *source;
     int length;

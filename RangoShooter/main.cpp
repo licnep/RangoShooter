@@ -249,7 +249,7 @@ void handleKeypress(unsigned char key, //The key that was pressed
 {    //The current mouse coordinates
     float xrotrad, yrotrad;
 	switch (key) {
-		case 'h': custom_shader = !custom_shader;
+		case 'h': custom_shader = !custom_shader;break;
 		case 'f':
 		case 'F':
 			if(full_screen){
@@ -583,7 +583,7 @@ void Render_Gioco(void){
 	else glUseProgram(0);
 
 	//aggiorno la variabile tempo nello shader glsl
-	tempo=(tempo+1)%200;
+	tempo=(tempo+1)%300;
 	glUniform1i(glslTime, tempo);
 
 	glDisable(GL_FOG); glUniform1i(glslFog, 0);
@@ -620,8 +620,8 @@ void Render_Gioco(void){
 	glHint(GL_FOG_HINT, GL_DONT_CARE);				// Fog Hint Value
 	glFogf(GL_FOG_START, 3.5f);						// Fog Start Depth
 	glFogf(GL_FOG_END, 6.0f);						// Fog End Depth
-	glEnable(GL_FOG);								// Enables GL_FOG
-	
+	glEnable(GL_FOG);glUniform1i(glslFog, 1);		// Enables GL_FOG
+
 	//-------------------------
 
 	if(first == TRUE){

@@ -20,7 +20,7 @@ void main (void)
   //float rand = fract(sin(dot(gl_TexCoord[0].st ,vec2(12.9898,glslTime))) * 43758.5453);
 
   //vec2 distort = vec2(sin(gl_FragCoord.x/1.5),sin(gl_FragCoord.y*3.14*glslTime/400)); //*(rand);
-  vec2 distort = vec2(0,sin(gl_FragCoord.y/4+3.14*(float(glslTime)/20.0)  ));
+  vec2 distort = vec2(0,sin(gl_FragCoord.y/4+3.14*(float(glslTime)/30.0)  ));
   vec4 coloreTexture = texture2D(tex,gl_TexCoord[0].st-distort/400);
   //vec4 coloreTexture = texture2D(tex,gl_TexCoord[0].st-vec2(rand*0.01,0) );
 
@@ -45,7 +45,7 @@ void main (void)
   float outputRed = (inputRed * 0.393) + (inputGreen *0.769) + (inputBlue * 0.189);
   float outputGreen = (inputRed * 0.349) + (inputGreen *0.686) + (inputBlue * 0.168);
   float outputBlue = (inputRed * 0.272) + (inputGreen *0.534) + (inputBlue * 0.131);
-  final_color = mix(final_color,vec4(outputRed,outputGreen,outputBlue,final_color.a),0.35);
+  final_color = mix(final_color,vec4(outputRed,outputGreen,outputBlue,final_color.a),0.4);
 
 
 
