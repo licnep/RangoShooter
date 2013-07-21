@@ -119,13 +119,8 @@ aiVector2D cursor_position(void){
 
 	GetCursorPos(&mpos);
 
-	if(full_screen){
-		xy.x=mpos.x*0.1564;
-		xy.y=mpos.y*0.25;
-	}else{
-		xy.x=(mpos.x-x_wpos)*(200.0/ww);
-		xy.y=(mpos.y-y_wpos)*(200.0/wh);
-	}
+	xy.x=(mpos.x-x_wpos)*(200.0/ww);
+	xy.y=(mpos.y-y_wpos)*(200.0/wh);
 
 	return xy;
 
