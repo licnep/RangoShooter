@@ -40,24 +40,44 @@
 #define MAX_LIV				3
 #define LEVEL_TIME			3000
 #define PI 3.141592654
-#define SENSITIVITY 0.04149 //set by me to be almost equal to the mouse movement (yeah right should be computed after distance of the quad)
-#define NMONKEYS 10
 #define BULLET_NUMBER 6
 
 GLuint scene_list_case,scene_list_target;
+GLuint skyboxArray[5];
+GLuint menuArray[6];
+GLuint pointer;
+
+GLfloat LightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f };
+GLfloat LightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
+GLfloat LightPosition[]= { 40.0f, 30.0f, -10.0f, 1.0f };
 
 struct myScene level1_scene, level2_scene, level3_scene,target_scene,terreno_scene; 
+
+struct gun {
+    struct myScene pistola;
+    int bullet_number;
+    struct myScene proiettile;
+}gun0;
 
 // angle of rotation (non static)
 float  xpos = 15, ypos = 0, zpos = 0, xrot = 3, yrot = 0, lastx, lasty;
 float cRadius = 10.0f; // our radius distance from our character
-
 float windowWidth = 900, windowHeight = 600;
 float middleX = windowWidth / 2, middleY = windowHeight / 2;
 float relativeX, relativeY;
 float flag = 0;
-int score;
 
+int score;
+int livello=1;
+int pos;
+int ch;
+int menu_id=0;
+
+bool first;
+bool menu;
+bool full_screen=TRUE;
+bool f_s_off = FALSE;
+bool pause=FALSE;
 
 //VARIABILI AGGIUNTE
 motion m[18];
@@ -66,42 +86,12 @@ level livelli;
 indice_personaggi ch_index;
 POINT mpos;
 aiVector2D pointer_pos;
-
 Object3D main_camera, pistola;
-
-float zoom=3.f;
-int livello=1;
-int pos,durata=-200;
-int ch;
-int stop_level=0;
-
-GLfloat LightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f };
-GLfloat LightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
-GLfloat LightPosition[]= { 40.0f, 30.0f, -10.0f, 1.0f };
-
-struct gun {
-    struct myScene pistola;
-    int bullet_number;
-    struct myScene proiettile;
-};
-
-struct gun gun0;
-bool first;
-bool menu;
-bool full_screen=FALSE;
-bool f_s_off = FALSE;
-bool pause=FALSE;
 
 sf::SoundBuffer sound_hit,sound_miss,sound_youreempty,sound_ohno; //suoni
 sf::Sound sound;
 sf::Music music;
-
-// need an array for the skybox - using DevIL
-
-GLuint skyboxArray[5];
-GLuint menuArray[6];
-GLuint pointer;
-int menu_id=0;
+sf::Music music_pause;
 
 // ---------------------------------------------------------------------------
 void mouseMovement(int x, int y)
@@ -141,48 +131,11 @@ aiVector2D cursor_position(void){
 
 }
 
-// ---------------------------------------------------------------------------
-void drawHUD()
-{
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0, windowWidth, windowHeight, 0.0, -1.0, 10.0);
-    glMatrixMode(GL_MODELVIEW);
-    //glPushMatrix();        ----Not sure if I need this
-    glLoadIdentity();
-    glDisable(GL_CULL_FACE);
-    
-    glClear(GL_DEPTH_BUFFER_BIT);
-    
-    // it create a "over HUD" - a white rectangle at the top
-    
-    glBegin(GL_QUADS);
-    glColor3f(1.0f, 0.0f, 0.0);
-    glVertex2f(0.0, 0.0);
-    glVertex2f(windowWidth, 0.0);
-    glVertex2f(windowWidth, 30.0);
-    glVertex2f(0.0, 30.0);
-    glEnd();
-    
-    // Making sure we can render 3d again
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    //glPopMatrix();        ----and this?
-
-}
-
 // ----------------------------------------------------------------------------
+
 void reload ()
 {
-    /*
-    if (score > 5) {
-        gun0.bullet_number = BULLET_NUMBER;
-        score -= 5;
-    }
-    */
-    
+
     gun0.bullet_number = BULLET_NUMBER;
 	score-=3;
     
@@ -190,6 +143,7 @@ void reload ()
 }
 
 // ----------------------------------------------------------------------------
+
 void newGame ()
 {
 	music.stop();
@@ -205,10 +159,7 @@ void newGame ()
         m[j]=reset_motion(m[j]);
     }
     
-    zoom=3.f;
     livello=1;
-    
-    stop_level=0;
     
     // for the score
     
@@ -222,6 +173,7 @@ void newGame ()
 }
 
 // ----------------------------------------------------------------------------
+
 void changeLevel(int move)
 {
     if (move == 1){
@@ -270,13 +222,6 @@ void changeLevel(int move)
             livello--;
         }
     }
-    /*
-    if(livello==3){
-		xpos= 18;
-        zoom=2.4f;
-    } else {
-        zoom=3.0f;
-    }*/
     
 }
 
@@ -300,7 +245,6 @@ void handleResize(int w, int h)
 				   200.0);                //The far z clipping coordinate
 }
 
-float xxx=0,yyy=0,zzz=0,sss=1;
 // ----------------------------------------------------------------------------
 //Called when a key is pressed
 void handleKeypress(unsigned char key, //The key that was pressed
@@ -308,39 +252,30 @@ void handleKeypress(unsigned char key, //The key that was pressed
 {    //The current mouse coordinates
     float xrotrad, yrotrad;
 	switch (key) {
-		case 'a': xxx--;break;
-		case 'd': xxx++;break;
-		case '1': yyy++;break;
-		case '2': yyy--;break;
-		case 'x': zzz--;break;
-		case 'w': zzz++;break;
-		case 'k': glutPostRedisplay();break;
+
 		case 'f':
+		case 'F':
 			if(full_screen){
 				full_screen=FALSE;
 				f_s_off=TRUE;
 			}
 			else full_screen=TRUE;
 			break;
-		case 'F':
-			if(full_screen)full_screen=FALSE;
-			else full_screen=TRUE;
-			break;
+
         case 'r':
-            reload();
-            break;
 		case 'R':
             reload();
             break;
+
 		case 32://Space key
 			if(menu && menu_id==0)menu_id=2; //metti menu credits
             break;
+
 		case 'c':
-			if(menu && menu_id==0)menu_id=1; //metti menu comandi
-            break;
 		case 'C':
 			if(menu && menu_id==0)menu_id=1; //metti menu comandi
             break;
+
 		case 13: //Enter key
 			if(menu_id==0){
 				menu_id=5; //Inizia a Giocare (Esci dai menu!)
@@ -348,42 +283,42 @@ void handleKeypress(unsigned char key, //The key that was pressed
 				menu=FALSE;
 			}
 			break;
+
 		case 8: //Backspace key
 			if(!pause){
+				if(menu_id==4){
+					music.stop();
+					music.openFromFile("./dati/audio/Rango_Theme.ogg");
+					music.play();
+				}
 				menu_id=0;//Torna al menu pricipale
 				menu=TRUE;
 			}
 			break;
+
         case 'p':
-			if(menu && menu_id==0)menu_id=3; //metti menu personaggi
-            break;
 		case 'P':
 			if(menu && menu_id==0)menu_id=3; //metti menu personaggi
             break;
+
 		case 's':
 		case 'S':
 			if(menu_id==5){
 				if(pause) {
-					music.stop();
-					music.openFromFile("./dati/audio/Morricone.ogg");
+					music_pause.stop();
 					music.play();
 					pause=FALSE;
 				}
 				else {
 					//musica
-					music.stop();
-					music.openFromFile("./dati/audio/Lizard.ogg");
-					music.play();
+					music.pause();
+					music_pause.openFromFile("./dati/audio/Lizard.ogg");
+					music_pause.play();
 					pause=TRUE;
 				}
 			}
 			break;
-        case '+':
-            zoom+=0.2;
-            break;
-		case '-':
-            zoom-=0.2;
-            break;
+
 		case 27: //Escape key
 			exit(0); //Exit the program
 	}
@@ -469,8 +404,8 @@ void drawGun ()
 	x=xy.x-100.0;
 	y=xy.y-100.0;
 	glPushMatrix();
-	glScalef(0.05*sss,0.05*sss,0.05*sss); //la rimpiccioliamo perche' e' enorme
-	glTranslatef(0.f, -7.f, -17.2f);
+	glScalef(0.05,0.05,0.05); //la rimpiccioliamo perche' e' enorme
+	glTranslatef(0.f, -7.f, -17.2);
 	pistola.applyGlMatrixTransformations(); //applico l'animazione
 	glRotatef(-y*0.2, 1.0f, 0.0f, 0.f);
 	glRotatef(-x*0.4, 0.0f, 1.0f, 0.f);
@@ -484,29 +419,6 @@ void drawGun ()
 
 // ----------------------------------------------------------------------------
 
-void drawScope ()
-{
-    glPushMatrix();
-    glEnable(GL_COLOR_MATERIAL);
-	glTranslatef(pointer_pos.x,pointer_pos.y,0.0);
-    glColor3f(0.5f, 0.5f, 0.5f);
-    glBegin(GL_LINE_LOOP);
-    
-    //Trapezoid
-    glVertex3f(-0.5f, -0.5f, -30.0f);
-    glVertex3f(0.5f, -0.5f, -30.0f);
-    glVertex3f(0.5f, 0.5f, -30.0f);
-    glVertex3f(-0.5f, 0.5f, -30.0f);
-    
-    glEnd();
-    
-    glDisable(GL_COLOR_MATERIAL);
-    
-    glPopMatrix();
-}
-
-// ----------------------------------------------------------------------------
-
 void drawScore ()
 {
     
@@ -515,21 +427,11 @@ void drawScore ()
     char string_score[5]; // enough to hold all numbers up to 64-bits
     sprintf(string_score, "%d", score);
     str += string_score;
-    /*
-    str += "\n Mouse X:";
-    char mouse_X[5]; // enough to hold all numbers up to 64-bits
-    sprintf(mouse_X, "%.1f", lastx);
-    str += mouse_X;
-    
-    str += "\n Mouse Y:";
-    char mouse_Y[5]; // enough to hold all numbers up to 64-bits
-    sprintf(mouse_Y, "%.1f", windowHeight-lasty);
-    str += mouse_Y;
-    */
+   
     glPushMatrix();
     
     glEnable(GL_COLOR_MATERIAL);
-    glColor3f(0.f, 0.3f, 1.f);
+    glColor3f(0.5f,0.45f,0.23f);
     
 	//Draw instructions
 	glScalef(0.05,0.05,0.05);
@@ -544,7 +446,7 @@ void drawScore ()
     return;
 }
 
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 void drawSkybox(void)
 {
@@ -620,7 +522,6 @@ void drawSkybox(void)
     glDisable(GL_COLOR_MATERIAL);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-    //glClear(GL_DEPTH_BUFFER_BIT);
     
     glPopMatrix();
     
@@ -651,9 +552,6 @@ GLuint toGLTexture (const char* path)
         glGenTextures(1, &textureID); /* Texture name generation */
         glBindTexture(GL_TEXTURE_2D, textureID); /* Binding of texture name */
         // Set texture clamping method
-		
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); //commentate, nella versione di windows di openGL non c'e' clamp_to_edge
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Puts a magnification filter on the texture
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //Puts a minification filter on the texture
@@ -674,23 +572,18 @@ GLuint toGLTexture (const char* path)
 }
 
 // ---------------------------------------------------------------------------
+
 void Render_Gioco(void){
+
 	float tmp;
 	
 	pointer_pos=cursor_position();
 
 	glutSetCursor(GLUT_CURSOR_NONE);
   
-  /**codice che era stato rimosso da alby:
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-  **/
 	glDisable(GL_FOG);
 
     drawSkybox();
-    //drawHUD();
 	drawGun();
 	drawBullet();
     drawScore();
@@ -698,48 +591,31 @@ void Render_Gioco(void){
     glPushMatrix();
     gluLookAt(0.f,0.f,3.f,0.f,0.f,-5.f,0.f,1.f,0.f);
 
-	// scale the whole asset to fit into our view frustum
-	/*
-	if(livello==1){
-	tmp = level1_scene.scene_max.x-level1_scene.scene_min.x;
-	tmp = aisgl_max(level1_scene.scene_max.y - level1_scene.scene_min.y,tmp);
-	tmp = aisgl_max(level1_scene.scene_max.z - level1_scene.scene_min.z,tmp);
-	}
-	if(livello==2){
-	tmp = level2_scene.scene_max.x-level2_scene.scene_min.x;
-	tmp = aisgl_max(level2_scene.scene_max.y - level2_scene.scene_min.y,tmp);
-	tmp = aisgl_max(level2_scene.scene_max.z - level2_scene.scene_min.z,tmp);
-	}
-	if(livello==3){
-	tmp = level3_scene.scene_max.x-level3_scene.scene_min.x;
-	tmp = aisgl_max(level3_scene.scene_max.y - level3_scene.scene_min.y,tmp);
-	tmp = aisgl_max(level3_scene.scene_max.z - level3_scene.scene_min.z,tmp);
-	}
-	tmp = zoom / tmp;*/
 	tmp = 0.0536414;
 	glScalef(tmp, tmp, tmp);
     
-    //glTranslated(-xpos,0.0f,-zpos); //translate the screen to the position of our camera
 	glTranslated(-xpos,0.0f,0.0f);
 	
 	//SPOSTAMENTO DELLA CAMERA:
 	float xx=9,yy=0,zz=42;
-	glTranslatef(xx,yy,zz); //sposto l'origine nella camera
+	glTranslatef(xx,yy,zz);
 	glRotatef(main_camera.getLocRot().y_rot,0.0f,1.0f,0.0f);
+
 	glTranslatef(-xx,-yy,-zz);
 	//translo la camera (in realta' translo tutto il resto)
 	glTranslatef(main_camera.getLocRot().x, main_camera.getLocRot().y, main_camera.getLocRot().z);
 
+
 	//Fog----------------------
 
-	glFogi(GL_FOG_MODE, GL_LINEAR);        // Fog Mode
+	glFogi(GL_FOG_MODE, GL_LINEAR);					// Fog Mode
 	GLfloat fogColor[4]= {0.6f, 0.5f, 0.3f, 1.0f};
-	glFogfv(GL_FOG_COLOR, fogColor);            // Set Fog Color
-	glFogf(GL_FOG_DENSITY, 0.45f);              // How Dense Will The Fog Be
-	glHint(GL_FOG_HINT, GL_DONT_CARE);          // Fog Hint Value
-	glFogf(GL_FOG_START, 3.5f);             // Fog Start Depth
-	glFogf(GL_FOG_END, 6.0f);               // Fog End Depth
-	glEnable(GL_FOG);                   // Enables GL_FOG
+	glFogfv(GL_FOG_COLOR, fogColor);				// Set Fog Color
+	glFogf(GL_FOG_DENSITY, 0.45f);					// How Dense Will The Fog Be
+	glHint(GL_FOG_HINT, GL_DONT_CARE);				// Fog Hint Value
+	glFogf(GL_FOG_START, 3.5f);						// Fog Start Depth
+	glFogf(GL_FOG_END, 6.0f);						// Fog End Depth
+	glEnable(GL_FOG);								// Enables GL_FOG
 	
 	//-------------------------
 
@@ -768,12 +644,15 @@ void Render_Gioco(void){
 
 	drawPointer(pointer_pos);
 
+	if(pause) DrawMenu(0,0,menuArray[5],true);
+
 }
 
 // ---------------------------------------------------------------------------
 
 void display(void)
 {
+		
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glMatrixMode(GL_MODELVIEW);
@@ -782,8 +661,7 @@ void display(void)
 	if(full_screen)glutFullScreen();
 	else{
 		if(f_s_off){
-			//glutReshapeWindow(windowWidth,windowHeight);
-			glutReshapeWindow(400,400);
+			glutReshapeWindow(900,600);
 			glutPositionWindow(100,100);
 			f_s_off=FALSE;
 		}
@@ -795,8 +673,7 @@ void display(void)
 	else if(menu_id==3)DrawMenu(0,0,menuArray[3],true);
 	else if(menu_id==4)DrawMenu(0,0,menuArray[4],true);
 	else {
-		if(pause) DrawMenu(0,0,menuArray[5],true);
-		else Render_Gioco();
+		Render_Gioco();
 	}
 
 	glutSwapBuffers();
@@ -904,23 +781,15 @@ void collisionCurse (void)
     
     //restrict the draw to an area around the cursor
     gluPickMatrix(fittX, fittY, 5.0, 5.0, view);
-    //gluPerspective(60, 1.0, 0.0001, 1000.0);
-	gluPerspective(45.0,                  //The camera angle
+	gluPerspective(45.0,							//The camera angle
 		(double)windowWidth / (double)windowHeight, //The width-to-height ratio
-				   0.1,                   //The near z clipping coordinate
-				   200.0);                //The far z clipping coordinate
-    
-    
-    //Draw the objects onto the screen
-    //glMatrixMode(GL_MODELVIEW);
-    
-    //draw only the names in the stack, and fill the array
-    
+				   0.1,								//The near z clipping coordinate
+				   200.0);							//The far z clipping coordinate
+        
     glutSwapBuffers();
     display();
     
     
-    //Do you remeber? We do pushMatrix in PROJECTION mode
     glMatrixMode(GL_PROJECTION);
  	glPopMatrix();
     
@@ -966,7 +835,7 @@ void handleMouseKeypress(int key, int state, int x, int y)
 {
     switch (key) {
 		case GLUT_LEFT_BUTTON:
-            if (state == 0){
+            if (state == 0 && pause==FALSE){
                 if (gun0.bullet_number > 0) {
 					gun0.bullet_number--;
 					pistola.pushAnimation(animation(locRot(0,0,0,10,0,-10),100,std::chrono::system_clock::now()));
@@ -995,28 +864,22 @@ void InitMenu(){
 	menuArray[3]= toGLTexture("./dati/models/textures/personaggi.png");
 	menuArray[4]= toGLTexture("./dati/models/textures/fine_gioco.png");
 	menuArray[5]= toGLTexture("./dati/models/textures/pausa.png");
+
 }
 
 // --------------------------------------------------------------------------
 
 void initSkybox ()
 {
-    
-    if (1 != 1){
-        skyboxArray[0] = toGLTexture("./dati/skybox_bello/front.jpg");
-        skyboxArray[1] = toGLTexture("./dati/skybox_bello/right.jpg");
-        skyboxArray[2] = toGLTexture("./dati/skybox_bello/left.jpg");
-        skyboxArray[3] = toGLTexture("./dati/skybox_bello/up.jpg");
-        skyboxArray[4] = toGLTexture("./dati/skybox_bello/down.jpg");
-    } else {
-        skyboxArray[0] = toGLTexture("./dati/skybox/front.jpg");
-        skyboxArray[1] = toGLTexture("./dati/skybox/left.jpg");
-        skyboxArray[2] = toGLTexture("./dati/skybox/right.jpg");
-        skyboxArray[3] = toGLTexture("./dati/skybox/up.jpg");
-        skyboxArray[4] = toGLTexture("./dati/skybox/down.jpg");
-    }
+
+	skyboxArray[0] = toGLTexture("./dati/skybox/front.jpg");
+    skyboxArray[1] = toGLTexture("./dati/skybox/left.jpg");
+    skyboxArray[2] = toGLTexture("./dati/skybox/right.jpg");
+    skyboxArray[3] = toGLTexture("./dati/skybox/up.jpg");
+    skyboxArray[4] = toGLTexture("./dati/skybox/down.jpg");
     
     return;
+
 }
 
 // ----------------------------------------------------------------------------
